@@ -41,9 +41,9 @@ This project provides a production-ready deployment of Apache Airflow with PySpa
 - **Kubectl** (v1.21+)
 - **Helm** (v3.0+)
 
-### Installation Commands
 
-```bash
+
+<!-- ```bash
 # Install Kind
 curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
 chmod +x ./kind
@@ -56,7 +56,20 @@ sudo mv kubectl /usr/local/bin/
 
 # Install Helm
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-```
+``` -->
+
+Make sure the following tools are installed on your system:
+
+| Tool         | Purpose                          | Installation Link                                            |
+| ------------ | -------------------------------- | ------------------------------------------------------------ |
+| Docker       | Runs the Kind Kubernetes cluster | [Docker Desktop](https://www.docker.com/products/docker-desktop) |
+| kubectl      | CLI for Kubernetes               | [Install kubectl](https://kubernetes.io/docs/tasks/tools/)   |
+| Kind         | Lightweight Kubernetes in Docker | [Install Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) |
+| Helm         | Kubernetes package manager       | [Install Helm](https://helm.sh/docs/intro/install/)          |
+| GitHub Token | For private repo Git-Sync        | [Create Token](https://github.com/settings/tokens)           |
+
+------
+
 
 ## Quick Start
 
