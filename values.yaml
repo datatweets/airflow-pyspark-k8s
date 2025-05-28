@@ -1,0 +1,78 @@
+# Airflow Configuration
+airflow:
+  image:
+    repository: lotfinejad/airflow-pyspark
+    tag: latest
+    pullPolicy: IfNotPresent  # Changed to Always to ensure latest image
+  
+  webserver:
+    replicas: 1
+    port: 8080
+    
+  scheduler:
+    replicas: 1
+    
+  executor: LocalExecutor
+  
+  # Database connection
+  database:
+    host: airflow-postgresql
+    port: 5432
+    database: airflow
+    username: airflow
+    password: airflow
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 13-alpine  # Using alpine for smaller size
+    pullPolicy: IfNotPresent
+  
+  auth:
+    username: airflow
+    password: airflow
+    database: airflow
+  
+  persistence:
+    enabled: true
+    size: 2Gi
+    
+# Service Configuration
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080
+
+# Persistent Volume Configuration
+persistence:
+  enabled: true
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+  size: 5Gi
+  
+# Volume paths - using the mounted path in kind
+volumes:
+  hostPaths:
+    dags: /Users/lotfinejad/airflow-pyspark-k8s/dags
+    scripts: /Users/lotfinejad/airflow-pyspark-k8s/scripts
+    logs: /Users/lotfinejad/airflow-pyspark-k8s/logs
+    plugins: /Users/lotfinejad/airflow-pyspark-k8s/plugins
+
+# Resource limits
+resources:
+  webserver:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  scheduler:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"

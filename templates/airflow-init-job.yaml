@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: airflow-init-db-{{ .Release.Revision }}
+  labels:
+    app: airflow-init
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    metadata:
+      labels:
+        app: airflow-init
+    spec:
+      restartPolicy: OnFailure
+      initContainers:
+      - name: wait-for-postgres
+        image: busybox:1.35
+        command: 
+        - sh
+        - -c
+        - |
+          until nc -z {{ .Values.airflow.database.host }} {{ .Values.airflow.database.port }}; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+      containers:
+      - name: airflow-init
+        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+        imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+        command: 
+        - bash
+        - -c
+        - |
+          airflow db migrate
+          airflow users create \
+            --username admin \
+            --password admin \
+            --firstname Admin \
+            --lastname User \
+            --role Admin \
+            --email admin@example.com || true
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"

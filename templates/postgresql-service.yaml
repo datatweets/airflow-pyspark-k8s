@@ -1,0 +1,18 @@
+{{- if .Values.postgresql.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-postgresql
+  labels:
+    app: airflow-postgresql
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.airflow.database.port }}
+    targetPort: 5432
+    protocol: TCP
+    name: postgresql
+  selector:
+    app: airflow-postgresql
+{{- end }}
