@@ -14,5 +14,5 @@ data:
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
   AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
   # JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
-  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64"
+  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64" # Adjusted for ARM architecture
   SPARK_HOME: "/home/airflow/.local/lib/python3.8/site-packages/pyspark"
