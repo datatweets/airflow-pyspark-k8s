@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: airflow-worker
+  namespace: default
+  labels:
+    app: airflow
+    component: worker
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: airflow-scheduler
+  namespace: default
+  labels:
+    app: airflow
+    component: scheduler
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: airflow-worker
+  labels:
+    app: airflow
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["create", "get", "list", "watch", "delete", "patch"]
+- apiGroups: [""]
+  resources: ["pods/log"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["pods/exec"]
+  verbs: ["get", "create"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+- apiGroups: [""]
+  resources: ["persistentvolumeclaims"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: airflow-scheduler
+  labels:
+    app: airflow
+    component: scheduler
+subjects:
+- kind: ServiceAccount
+  name: airflow-scheduler
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: airflow-worker
+  apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: airflow-worker
+  labels:
+    app: airflow
+    component: worker
+subjects:
+- kind: ServiceAccount
+  name: airflow-worker
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: airflow-worker
+  apiGroup: rbac.authorization.k8s.io

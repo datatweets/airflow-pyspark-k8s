@@ -1,18 +1,33 @@
+# templates/airflow-configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: airflow-config
   labels:
     app: airflow
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 data:
-  AIRFLOW__CORE__EXECUTOR: {{ .Values.airflow.executor }}
-  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://{{ .Values.airflow.database.username }}:{{ .Values.airflow.database.password }}@{{ .Values.airflow.database.host }}:{{ .Values.airflow.database.port }}/{{ .Values.airflow.database.database }}
+  # Core Airflow settings
+  AIRFLOW__CORE__EXECUTOR: "{{ .Values.airflow.executor }}"
+  AIRFLOW__CORE__SQL_ALCHEMY_CONN: "{{ .Values.airflow.database.url }}"
+  AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "{{ .Values.airflow.database.url }}"
   AIRFLOW__CORE__LOAD_EXAMPLES: "False"
-  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
   AIRFLOW__CORE__FERNET_KEY: "81HqDtbqAywKSOumSha3BhWNOdQ26slT6K0YaZeZyPs="
   AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "True"
+  AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
   AIRFLOW__API__AUTH_BACKENDS: "airflow.api.auth.backend.basic_auth"
-  # JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
-  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64" # Adjusted for ARM architecture
+
+  # Java and Spark paths
+  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64"
   SPARK_HOME: "/home/airflow/.local/lib/python3.8/site-packages/pyspark"
+
+  # KubernetesExecutor (Airflow 2.x) settings
+  AIRFLOW__KUBERNETES_EXECUTOR__NAMESPACE: "{{ .Values.kubernetes.namespace }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_REPOSITORY: "{{ .Values.kubernetes.worker_container_repository }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_CONTAINER_TAG: "{{ .Values.kubernetes.worker_container_tag }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS: "{{ .Values.kubernetes.delete_worker_pods }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__DELETE_WORKER_PODS_ON_FAILURE: "{{ .Values.kubernetes.delete_worker_pods_on_failure }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__DAGS_IN_IMAGE: "True"
+  AIRFLOW__KUBERNETES_EXECUTOR__POD_TEMPLATE_FILE: "/opt/airflow/pod-template/pod_template.yaml"
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_PODS_CREATION_BATCH_SIZE: "{{ .Values.kubernetes.worker_pods_creation_batch_size }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__MULTI_NAMESPACE_MODE: "{{ .Values.kubernetes.multi_namespace_mode }}"
+  AIRFLOW__KUBERNETES_EXECUTOR__WORKER_SERVICE_ACCOUNT_NAME: "{{ .Values.kubernetes.worker_service_account_name }}"
