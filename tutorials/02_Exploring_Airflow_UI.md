@@ -16,7 +16,7 @@ This tutorial will guide you through the Apache Airflow UI, showing you how to n
 4. Enter your administrator username and password
 5. Click "Sign In"
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.11.18 PM.png" alt="Screenshot 2025-05-31 at 4.11.18 PM" style="zoom:50%;" />
+<img width="1512" alt="Screenshot 2025-05-31 at 4 11 18 PM" src="https://github.com/user-attachments/assets/484ec429-e2c1-4762-95fb-9cb8e471aa32" />
 
 ------
 
@@ -40,10 +40,8 @@ After logging in, you'll be taken to the main DAGs list page showing all availab
 ⚠️ Do not use SQLite as metadata DB in production
 ⚠️ Do not use SequentialExecutor in production
 ```
+<img width="1512" alt="Screenshot 2025-05-31 at 4 13 20 PM" src="https://github.com/user-attachments/assets/ec529f0e-8292-40c1-bb14-8dd73b552c3e" />
 
-
-
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.13.20 PM.png" alt="Screenshot 2025-05-31 at 4.13.20 PM" style="zoom:50%;" />
 
 ------
 
@@ -85,9 +83,9 @@ Small circles on the right show individual task statuses:
 4. Observe the schedule: `none`
 5. See the green success indicator appear
 
+<img width="1512" alt="Screenshot 2025-05-31 at 4 15 41 PM" src="https://github.com/user-attachments/assets/3f3faf68-4602-4d80-8f3e-84e12c6f7890" />
 
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.15.41 PM.png" alt="Screenshot 2025-05-31 at 4.15.41 PM" style="zoom:50%;" />
 
 ------
 
@@ -108,16 +106,15 @@ Small circles on the right show individual task statuses:
 
 - **Top Bar**: Shows execution duration
 
-- Task Squares
-
-  : Visual representation of task status
+- Task Squares: Visual representation of task status
 
   - Green = Success
   - Pink = Skipped (due to branching)
 
 - **Legend**: Color codes for all possible task states
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.15.41 PM.png" alt="Screenshot 2025-05-31 at 4.15.41 PM" style="zoom:50%;" />
+
+<img width="1512" alt="Screenshot 2025-05-31 at 4 17 52 PM" src="https://github.com/user-attachments/assets/523b14b9-bf6c-416d-a949-20b459b5b534" />
 
 
 
@@ -174,7 +171,8 @@ Small circles on the right show individual task statuses:
 - Understand task behavior
 - Track data processing steps
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.20.34 PM.png" style="zoom:50%;" />
+<img width="1512" alt="Screenshot 2025-05-31 at 4 20 34 PM" src="https://github.com/user-attachments/assets/c1c17593-245c-4215-b4d5-d74b2a7b834b" />
+
 
 ------
 
@@ -201,8 +199,8 @@ Small circles on the right show individual task statuses:
 - Visualize execution paths
 
 
+<img width="1512" alt="Screenshot 2025-05-31 at 4 20 51 PM" src="https://github.com/user-attachments/assets/d7a8a3ff-f4df-4cbe-8203-82f94c3786d6" />
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.20.51 PM.png" alt="Screenshot 2025-05-31 at 4.20.51 PM" style="zoom:50%;" />
 
 ------
 
@@ -220,8 +218,8 @@ Small circles on the right show individual task statuses:
 - Easy way to track execution patterns
 
 
+<img width="1512" alt="Screenshot 2025-05-31 at 4 21 08 PM" src="https://github.com/user-attachments/assets/6271a0c9-41f2-4755-a28a-6f28b583206e" />
 
-<img src="/Users/lotfinejad/Desktop/Screenshot 2025-05-31 at 4.21.08 PM.png" alt="Screenshot 2025-05-31 at 4.21.08 PM" style="zoom:50%;" />
 
 ------
 
