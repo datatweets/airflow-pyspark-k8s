@@ -313,3 +313,114 @@ Email notifications transform Airflow from a silent background worker into a com
 The example we built – collecting and emailing Python environment information – is just the beginning. You can adapt this pattern to send data quality reports, alert on specific business conditions, or provide daily summaries of processed data. The combination of Airflow's orchestration power and email's universal accessibility creates a robust notification system for your data pipelines.
 
 Remember, the goal of email notifications is to give you peace of mind. When your pipelines run successfully, you know about it. When they fail, you know about it immediately. This visibility is crucial for maintaining reliable data operations, especially in a Kubernetes environment where pods come and go dynamically.
+---
+## Appendix: Adding Multiple Recipients to Your Email Notifications
+
+Now that you have email notifications working, you might be wondering: "What if I need to send the same notification to multiple people?" This is a common requirement in team environments where several people need to stay informed about pipeline status. Let me show you how to extend our email DAG to handle multiple recipients.
+
+The good news is that Python's email handling makes this straightforward. Instead of having a single `RECEIVER_EMAIL`, you can create a list of email addresses and send to all of them at once. Here's how to modify the code we wrote earlier:
+
+```python
+# Instead of a single receiver:
+# RECEIVER_EMAIL = "recipient@example.com"
+
+# Use a list of receivers:
+RECEIVER_EMAILS = [
+    "data-engineer@example.com",
+    "team-lead@example.com", 
+    "qa-analyst@example.com",
+    "stakeholder@example.com"
+]
+
+# In your send_email_notification function, modify the message creation:
+def send_email_notification(**context):
+    # ... previous code for retrieving summary ...
+    
+    # Create the email message
+    message = MIMEMultipart()
+    message['From'] = SENDER_EMAIL
+    
+    # For multiple recipients, join them with commas
+    message['To'] = ", ".join(RECEIVER_EMAILS)
+    
+    message['Subject'] = f"Airflow Environment Report - {datetime.now().strftime('%Y-%m-%d')}"
+    
+    # ... rest of the email body creation ...
+    
+    # When sending, use the list directly
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        server.login(SENDER_EMAIL, SENDER_PASSWORD)
+        
+        # sendmail accepts a list of recipients
+        text = message.as_string()
+        server.sendmail(SENDER_EMAIL, RECEIVER_EMAILS, text)
+        server.quit()
+        
+        print(f"Email sent successfully to {len(RECEIVER_EMAILS)} recipients")
+        return f"Email sent to {', '.join(RECEIVER_EMAILS)}"
+        
+    except Exception as e:
+        print(f"Failed to send email: {str(e)}")
+        raise
+```
+
+There's an important distinction to understand here. The `message['To']` field is what recipients see in their email client - it shows who else received the email. We join the email addresses with commas because that's the format email clients expect to display. However, the `server.sendmail()` method needs an actual Python list to know where to send the message.
+
+You can also implement more sophisticated recipient management. For instance, you might want different recipients for different types of notifications:
+
+```python
+# Define recipient groups for different scenarios
+NOTIFICATION_GROUPS = {
+    'success': ['team-lead@example.com'],
+    'failure': ['data-engineer@example.com', 'team-lead@example.com', 'oncall@example.com'],
+    'daily_report': ['team-lead@example.com', 'stakeholder@example.com', 'analyst@example.com'],
+    'data_quality_alert': ['data-engineer@example.com', 'qa-analyst@example.com']
+}
+
+# Then in your email function, choose the appropriate group:
+def send_notification(notification_type='success', **context):
+    recipients = NOTIFICATION_GROUPS.get(notification_type, NOTIFICATION_GROUPS['success'])
+    
+    # ... rest of email sending logic using recipients list ...
+```
+
+If you want to implement CC (carbon copy) and BCC (blind carbon copy) functionality, that's also possible. CC recipients are visible to everyone, while BCC recipients are hidden:
+
+```python
+# Define your recipient lists
+TO_EMAILS = ["primary-recipient@example.com"]
+CC_EMAILS = ["manager@example.com", "team-lead@example.com"]
+BCC_EMAILS = ["audit@example.com", "archive@example.com"]
+
+# In your email function:
+message = MIMEMultipart()
+message['From'] = SENDER_EMAIL
+message['To'] = ", ".join(TO_EMAILS)
+message['Cc'] = ", ".join(CC_EMAILS)
+# Note: BCC is not added to headers - it's handled in sendmail
+
+# When sending, combine all recipients
+all_recipients = TO_EMAILS + CC_EMAILS + BCC_EMAILS
+server.sendmail(SENDER_EMAIL, all_recipients, text)
+```
+
+One thing to be mindful of when sending to multiple recipients is email etiquette and privacy. If you're sending notifications about failures or sensitive data, consider whether all recipients should see each other's email addresses. Sometimes it's better to use BCC to protect privacy, or even to send individual emails to each recipient.
+
+For production environments where you might have many recipients or complex routing logic, consider storing your recipient lists in Airflow Variables too. This makes it easy to update who receives notifications without modifying your DAG code:
+
+```python
+# Store in Airflow Variables as a JSON string:
+# Key: notification_recipients
+# Value: {"success": ["email1@example.com"], "failure": ["email1@example.com", "email2@example.com"]}
+
+import json
+from airflow.models import Variable
+
+# In your DAG:
+recipients_config = json.loads(Variable.get("notification_recipients", "{}"))
+failure_recipients = recipients_config.get('failure', ['default@example.com'])
+```
+
+This approach gives you the flexibility to manage recipients through the Airflow UI, making it easy for non-technical team members to update notification settings without touching the code.
