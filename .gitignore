@@ -4,3 +4,7 @@ values-modified.yaml
 dags/__pycache__/
 *.log
 scripts/scheduler/
+dags/get_python_details_via_email.py
+dags/get_python_details.py
+scripts/dag_processor_manager
+dags/simple_xcom_example.py
