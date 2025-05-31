@@ -156,6 +156,7 @@ graph TB
 | Helm    | 3.0+    | [Install Helm](https://helm.sh/docs/intro/install/)          |
 | Git     | 2.0+    | [Install Git](https://git-scm.com/downloads)                 |
 
+
 ### Verify Installation
 
 ```bash
@@ -166,6 +167,22 @@ kubectl version --client
 helm version
 git --version
 ```
+---
+### NOTE
+#### Additional Development Tools
+
+For a complete development environment, you may also want to install:
+- **Python 3.8+** - Required for local DAG development and testing
+- **Visual Studio Code** - Recommended IDE with excellent Python and Kubernetes support
+
+#### Installation Resources
+**Comprehensive setup guides available at:** [DataTweets Documentation](https://datatweets.com/docs/reference/)
+
+The documentation includes step-by-step instructions for:
+- Python installation across different operating systems
+- Visual Studio Code setup and configuration
+
+---
 
 ## Quick Start
 
