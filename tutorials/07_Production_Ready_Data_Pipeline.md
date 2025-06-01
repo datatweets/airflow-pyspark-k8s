@@ -7,7 +7,7 @@ In production Airflow environments, it's a best practice to separate your DAG de
 In our setup, we maintain a clean separation of concerns:
 
 ```
-airflow/
+airflow-pyspark-k8s/
 ├── dags/
 │   └── insurance_pipeline_dag.py    # Only DAG definitions
 ├── scripts/
@@ -30,7 +30,7 @@ First, let's prepare our workspace:
 
 ```bash
 # Create the necessary directories in your scripts folder
-cd /path/to/scripts
+cd /path/to/your/scripts
 mkdir -p datasets
 mkdir -p output
 
