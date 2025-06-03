@@ -1,0 +1,9 @@
+# ignore build artifacts, logs, dags, scripts, plugins—only package chart files
+logs/
+scripts/
+dags/
+plugins/
+README.md
+Dockerfile
+kind-config.yaml
+.git/

@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: worker-pod-template
+data:
+  pod_template.yaml: |
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      labels:
+        app: airflow
+        component: worker
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 50000
+        fsGroup: 0
+      containers:
+      - name: base
+        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+        imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+        envFrom:
+        - configMapRef:
+            name: airflow-config
+        ports:
+        - name: worker-logs
+          containerPort: 8793
+        volumeMounts:
+        - name: pod-template
+          mountPath: /opt/airflow/pod-template
+        - name: dags
+          mountPath: /opt/airflow/dags
+          readOnly: true
+        - name: logs
+          mountPath: /opt/airflow/logs
+        - name: plugins
+          mountPath: /opt/airflow/plugins
+          readOnly: true
+        - name: scripts
+          mountPath: /opt/airflow/scripts
+          readOnly: false
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - airflow jobs check --job-type LocalTaskJob --hostname $(hostname)
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - airflow jobs check --job-type LocalTaskJob --hostname $(hostname)
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: pod-template
+        configMap:
+          name: worker-pod-template
+      - name: dags
+        hostPath:
+          path: {{ .Values.volumes.hostPaths.dags }}
+          type: Directory
+      - name: logs
+        hostPath:
+          path: {{ .Values.volumes.hostPaths.logs }}
+          type: DirectoryOrCreate
+      - name: plugins
+        hostPath:
+          path: {{ .Values.volumes.hostPaths.plugins }}
+          type: DirectoryOrCreate
+      - name: scripts
+        hostPath:
+          path: {{ .Values.volumes.hostPaths.scripts }}
+          type: DirectoryOrCreate
+      nodeSelector: {}
+      affinity: {}
+      tolerations: []

@@ -1,75 +1,188 @@
 # Airflow + PySpark on Kubernetes
 
-A complete infrastructure setup for running Apache Airflow with PySpark on Kubernetes using Helm charts and Kind for local development.
+[![Apache Airflow](https://img.shields.io/badge/Apache%20Airflow-2.x-blue.svg)](https://airflow.apache.org/) [![Kubernetes](https://img.shields.io/badge/Kubernetes-1.21+-326ce5.svg)](https://kubernetes.io/) [![PySpark](https://img.shields.io/badge/PySpark-3.x-E25A1C.svg)](https://spark.apache.org/) [![Helm](https://img.shields.io/badge/Helm-3.x-0F1689.svg)](https://helm.sh/)
 
-## Overview
+A production-ready infrastructure setup for running Apache Airflow with PySpark on Kubernetes using Helm charts and Kind for local development.
 
-This project provides a production-ready deployment of Apache Airflow with PySpark integration on Kubernetes. It includes:
+## Features
 
-- **Apache Airflow** with LocalExecutor
-- **PySpark** integration for big data processing
+- **Apache Airflow** with KubernetesExecutor for dynamic pod scaling
+- **PySpark** integration for distributed big-data processing
 - **PostgreSQL** as the metadata database
-- **Kubernetes** deployment using Helm charts
+- **Helm** charts for repeatable, configurable deployments
 - **Kind** (Kubernetes in Docker) for local development
-- Sample DAGs demonstrating Airflow and PySpark capabilities
+- **Sample DAGs** demonstrating ETL workflows
+- **RBAC** configured for secure Kubernetes operations
+- **Persistent volumes** for DAGs, logs, and plugins
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Port Configuration](#port-configuration)
+- [Accessing Airflow UI](#accessing-airflow-ui)
+- [DAGs & Examples](#dags--examples)
+- [Development Workflow](#development-workflow)
+- [Configuration](#configuration)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
 
 ## Architecture
 
+```mermaid
+graph TB
+    subgraph "Local Development Environment"
+        LM[Local Machine<br/>- DAGs<br/>- Scripts<br/>- Logs]
+    end
+    
+    subgraph "Kind Cluster (Kubernetes)"
+        subgraph "Airflow Namespace"
+            subgraph "Core Services"
+                WS[Airflow Webserver<br/>Port: 8080<br/>NodePort: 30080]
+                SCH[Airflow Scheduler<br/>KubernetesExecutor]
+                DB[(PostgreSQL<br/>Metadata DB)]
+            end
+            
+            subgraph "Storage Layer"
+                PVC1[DAGs PVC]
+                PVC2[Logs PVC]
+                PVC3[Scripts PVC]
+            end
+            
+            subgraph "Dynamic Task Execution"
+                subgraph "Regular Tasks"
+                    WT1[Worker Pod 1<br/>Python Operator]
+                    WT2[Worker Pod 2<br/>Bash Operator]
+                end
+                
+                subgraph "Spark Tasks"
+                    SD[Spark Driver Pod<br/>SparkSubmitOperator]
+                    SE1[Spark Executor 1]
+                    SE2[Spark Executor 2]
+                    SE3[Spark Executor N]
+                end
+            end
+        end
+    end
+    
+    subgraph "External Access"
+        USER[User/Developer]
+    end
+    
+    %% Connections
+    USER -->|HTTP :30080| WS
+    WS <-->|REST API| SCH
+    SCH -->|Task Status| DB
+    WS -->|Query| DB
+    
+    SCH -->|Create Pod| WT1
+    SCH -->|Create Pod| WT2
+    SCH -->|Create Pod| SD
+    
+    SD -->|Manage| SE1
+    SD -->|Manage| SE2
+    SD -->|Manage| SE3
+    
+    LM -.->|Volume Mount| PVC1
+    LM -.->|Volume Mount| PVC2
+    LM -.->|Volume Mount| PVC3
+    
+    PVC1 -->|Mount /opt/airflow/dags| WS
+    PVC1 -->|Mount /opt/airflow/dags| SCH
+    PVC1 -->|Mount /opt/airflow/dags| WT1
+    PVC1 -->|Mount /opt/airflow/dags| WT2
+    
+    PVC3 -->|Mount /opt/airflow/scripts| SD
+    PVC2 -->|Mount /opt/airflow/logs| WS
+    PVC2 -->|Mount /opt/airflow/logs| WT1
+    PVC2 -->|Mount /opt/airflow/logs| WT2
+    PVC2 -->|Mount /opt/airflow/logs| SD
+    
+    classDef core fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef storage fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef worker fill:#e8f5e9,stroke:#1b5e20,stroke-width:2px
+    classDef spark fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef external fill:#fce4ec,stroke:#880e4f,stroke-width:2px
+    
+    class WS,SCH,DB core
+    class PVC1,PVC2,PVC3 storage
+    class WT1,WT2 worker
+    class SD,SE1,SE2,SE3 spark
+    class USER,LM external
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  Airflow Web    │    │  Airflow        │    │  PostgreSQL     │
-│  Server         │    │  Scheduler      │    │  Database       │
-│  (Port 8080)    │    │                 │    │                 │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │  Shared Volumes │
-                    │  - DAGs         │
-                    │  - Scripts      │
-                    │  - Logs         │
-                    │  - Plugins      │
-                    └─────────────────┘
+
+## Repository Structure
+
+```
+.
+├── dags/                          # Airflow DAG definitions
+│   ├── hello_world_dag.py         # Basic example DAG
+│   ├── one_task_dag.py            # Single task example
+│   ├── spark_wordcount.py         # PySpark integration example
+│   └── test_kubernetes_executor.py # Kubernetes executor test
+├── k8s/                           # Kubernetes manifests
+│   └── rbac.yaml                  # RBAC permissions
+├── scripts/                       # PySpark applications and data
+│   ├── sample_text.txt            # Sample data for wordcount
+│   └── wordcount.py               # PySpark wordcount script
+├── templates/                     # Helm chart templates
+│   ├── airflow-configmap.yaml
+│   ├── airflow-init-job.yaml
+│   ├── airflow-scheduler-deployment.yaml
+│   ├── airflow-webserver-deployment.yaml
+│   ├── airflow-webserver-service.yaml
+│   ├── postgresql-deployment.yaml
+│   ├── postgresql-pvc.yaml
+│   ├── postgresql-service.yaml
+│   └── worker-pod-template-configmap.yaml
+├── .gitignore
+├── .helmignore
+├── Chart.yaml                     # Helm chart metadata
+├── README.md                      # This file
+├── kind-config.yaml               # Kind cluster configuration
+└── values.yaml                    # Helm value overrides
 ```
 
 ## Prerequisites
 
-### Required Software
-- **Docker** (v20.10+)
-- **Kind** (v0.11+)
-- **Kubectl** (v1.21+)
-- **Helm** (v3.0+)
+### Required Tools
+
+| Tool    | Version | Installation Guide                                           |
+| ------- | ------- | ------------------------------------------------------------ |
+| Docker  | 20.10+  | [Install Docker Desktop](https://www.docker.com/products/docker-desktop) |
+| Kind    | 0.11+   | [Install Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) |
+| kubectl | 1.21+   | [Install kubectl](https://kubernetes.io/docs/tasks/tools/)   |
+| Helm    | 3.0+    | [Install Helm](https://helm.sh/docs/intro/install/)          |
+| Git     | 2.0+    | [Install Git](https://git-scm.com/downloads)                 |
 
 
+### Verify Installation
 
-<!-- ```bash
-# Install Kind
-curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-chmod +x ./kind
-sudo mv ./kind /usr/local/bin/kind
+```bash
+# Check all tools are installed
+docker --version
+kind --version
+kubectl version --client
+helm version
+git --version
+```
+---
+### NOTE
+#### Additional Development Tools
 
-# Install Kubectl
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-chmod +x kubectl
-sudo mv kubectl /usr/local/bin/
+For a complete development environment, you may also want to install:
+- **Python 3.8+** - Required for local DAG development and testing
+- **Visual Studio Code** - Recommended IDE with excellent Python and Kubernetes support
 
-# Install Helm
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-``` -->
+#### Installation Resources
+**Comprehensive setup guides available at:** [DataTweets Documentation](https://datatweets.com/docs/reference/)
 
-Make sure the following tools are installed on your system:
+The documentation includes step-by-step instructions for:
+- Python installation across different operating systems
+- Visual Studio Code setup and configuration
 
-| Tool         | Purpose                          | Installation Link                                            |
-| ------------ | -------------------------------- | ------------------------------------------------------------ |
-| Docker       | Runs the Kind Kubernetes cluster | [Docker Desktop](https://www.docker.com/products/docker-desktop) |
-| kubectl      | CLI for Kubernetes               | [Install kubectl](https://kubernetes.io/docs/tasks/tools/)   |
-| Kind         | Lightweight Kubernetes in Docker | [Install Kind](https://kind.sigs.k8s.io/docs/user/quick-start/) |
-| Helm         | Kubernetes package manager       | [Install Helm](https://helm.sh/docs/intro/install/)          |
-| GitHub Token | For private repo Git-Sync        | [Create Token](https://github.com/settings/tokens)           |
-
-------
-
+---
 
 ## Quick Start
 
@@ -80,486 +193,401 @@ git clone https://github.com/datatweets/airflow-pyspark-k8s.git
 cd airflow-pyspark-k8s
 ```
 
-### 2. Configure Paths and Architecture
+### 2. Configure Host Paths
 
-**⚠️ IMPORTANT: Before deployment, you must update the configuration files for your environment:**
+Update the paths in two files to match your local environment:
 
-#### Update Volume Paths in values.yaml
-
-Replace `lotfinejad` with your actual username in [`values.yaml`](values.yaml):
+**In `values.yaml`:**
 
 ```yaml
-# Change this section in values.yaml
 volumes:
   hostPaths:
-    dags: /Users/YOUR_USERNAME/airflow-pyspark-k8s/dags      # Replace YOUR_USERNAME
-    scripts: /Users/YOUR_USERNAME/airflow-pyspark-k8s/scripts
-    logs: /Users/YOUR_USERNAME/airflow-pyspark-k8s/logs
-    plugins: /Users/YOUR_USERNAME/airflow-pyspark-k8s/plugins
+    dags:     /Users/YOUR_USERNAME/airflow-pyspark-k8s/dags
+    scripts:  /Users/YOUR_USERNAME/airflow-pyspark-k8s/scripts
+    logs:     /Users/YOUR_USERNAME/airflow-pyspark-k8s/logs
+    plugins:  /Users/YOUR_USERNAME/airflow-pyspark-k8s/plugins
 ```
 
-**For different operating systems:**
-- **macOS**: `/Users/YOUR_USERNAME/airflow-pyspark-k8s/`
-- **Linux**: `/home/YOUR_USERNAME/airflow-pyspark-k8s/`
-- **Windows**: `/c/Users/YOUR_USERNAME/airflow-pyspark-k8s/`
-
-#### Update Kind Configuration
-
-Also update the hostPath in [`kind-config.yaml`](kind-config.yaml):
+**In `kind-config.yaml`:**
 
 ```yaml
-extraMounts:
-- hostPath: /Users/YOUR_USERNAME/airflow-pyspark-k8s  # Replace YOUR_USERNAME
-  containerPath: /workspace
+nodes:
+  - role: control-plane
+    extraMounts:
+      - hostPath: /Users/YOUR_USERNAME/airflow-pyspark-k8s
+        containerPath: /workspace
 ```
 
-#### Configure Java Path for Your Architecture
+### 3. Set Java Home
 
-Update [`templates/airflow-configmap.yaml`](templates/airflow-configmap.yaml) based on your CPU architecture:
+In `templates/airflow-configmap.yaml`, set the appropriate JAVA_HOME:
 
-**For Intel/AMD processors (x86_64):**
+**For Intel/AMD (x86_64):**
+
 ```yaml
 data:
   JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
-  # ... other config
 ```
 
-**For ARM processors (Apple Silicon M1/M2, ARM64):**
+**For ARM (Apple Silicon):**
+
 ```yaml
 data:
   JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64"
-  # ... other config
 ```
 
-**How to check your architecture:**
-```bash
-# On macOS/Linux
-uname -m
-# x86_64 = Intel/AMD
-# arm64 = ARM (Apple Silicon)
-
-# On Windows
-echo $env:PROCESSOR_ARCHITECTURE
-# AMD64 = Intel/AMD
-# ARM64 = ARM
-```
-
-### 3. Create Kind Cluster
-
-The [`kind-config.yaml`](kind-config.yaml) configures a local Kubernetes cluster with port forwarding and volume mounts:
+### 4. Create the Kind Cluster
 
 ```bash
-kind create cluster --config kind-config.yaml --name airflow-cluster
+kind create cluster --name airflow-cluster --config kind-config.yaml
 ```
 
-### 4. Deploy with Helm
+### 5. Apply RBAC Configuration
 
 ```bash
-# Install the Helm chart
-helm install airflow-pyspark . -f values.yaml
-
-# Check deployment status
-kubectl get pods -w
-kubectl get services
+kubectl apply -f k8s/rbac.yaml
 ```
 
-### 5. Access Airflow Web UI
+### 6. Deploy with Helm
 
-Once deployed, access the Airflow web interface at: http://localhost:30080
+```bash
+helm upgrade --install airflow-pyspark . \
+  --namespace airflow \
+  --create-namespace \
+  --values values.yaml \
+  --wait
+```
 
-**Default Credentials:**
-- Username: `admin`
-- Password: `admin`
+### 7. Verify Deployment
 
-## Configuration
+```bash
+# Check all pods are running
+kubectl get pods -n airflow
 
-### Values Configuration
+# Check services
+kubectl get svc -n airflow
 
-The [`values.yaml`](values.yaml) file contains all configuration options:
+# Watch pod status in real-time
+kubectl get pods -n airflow -w
+```
 
-#### Key Settings
+## Port Configuration
+
+### Default Port Binding (NodePort 30080)
+
+By default, the Airflow webserver is exposed via NodePort on port 30080:
 
 ```yaml
-airflow:
-  image:
-    repository: lotfinejad/airflow-pyspark
-    tag: latest
-  
-  webserver:
-    port: 8080
-    replicas: 1
-    
-  scheduler:
-    replicas: 1
-    
-  executor: LocalExecutor
-
-postgresql:
-  enabled: true
-  persistence:
-    enabled: true
-    size: 2Gi
-
+# In templates/airflow-webserver-service.yaml
 service:
   type: NodePort
+  port: 8080
   nodePort: 30080
 ```
 
-#### Volume Mounts
+Access URL: `http://localhost:30080`
 
-⚠️ **Important**: Update these paths with your actual username and OS:
+### Alternative: Port 8080 Binding
 
-```yaml
-volumes:
-  hostPaths:
-    # UPDATE THESE PATHS:
-    dags: /Users/YOUR_USERNAME/airflow-pyspark-k8s/dags
-    scripts: /Users/YOUR_USERNAME/airflow-pyspark-k8s/scripts
-    logs: /Users/YOUR_USERNAME/airflow-pyspark-k8s/logs
-    plugins: /Users/YOUR_USERNAME/airflow-pyspark-k8s/plugins
-```
+To bind directly to port 8080 on your local machine, you have two options:
 
-**Path Examples by OS:**
-```yaml
-# macOS
-dags: /Users/john/airflow-pyspark-k8s/dags
-
-# Linux  
-dags: /home/john/airflow-pyspark-k8s/dags
-
-# Windows (WSL2)
-dags: /mnt/c/Users/john/airflow-pyspark-k8s/dags
-```
-
-### Architecture-Specific Configuration
-
-#### Java Configuration by CPU Architecture
-
-**Intel/AMD (x86_64) processors:**
-```yaml
-# In templates/airflow-configmap.yaml
-data:
-  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-amd64"
-  SPARK_HOME: "/home/airflow/.local/lib/python3.8/site-packages/pyspark"
-```
-
-**ARM (Apple Silicon, ARM64) processors:**
-```yaml
-# In templates/airflow-configmap.yaml  
-data:
-  JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64"
-  SPARK_HOME: "/home/airflow/.local/lib/python3.8/site-packages/pyspark"
-```
-
-#### Verify Your Architecture Setup
+#### Option 1: Port Forwarding (Recommended)
 
 ```bash
-# After deployment, verify Java path
-kubectl exec -it deployment/airflow-scheduler -- echo $JAVA_HOME
-kubectl exec -it deployment/airflow-scheduler -- java -version
-
-# Check available Java installations
-kubectl exec -it deployment/airflow-scheduler -- ls -la /usr/lib/jvm/
+# Forward local port 8080 to the Airflow webserver
+kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
 ```
 
-### Docker Image Architecture
+Access URL: `http://localhost:8080`
 
-The project uses `lotfinejad/airflow-pyspark:latest` which supports multiple architectures. If you encounter image pull issues:
+#### Option 2: Modify Kind Configuration
+
+Add port mapping to `kind-config.yaml`:
+
+```yaml
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      - containerPort: 30080
+        hostPort: 8080
+        protocol: TCP
+    extraMounts:
+      - hostPath: /Users/YOUR_USERNAME/airflow-pyspark-k8s
+        containerPath: /workspace
+```
+
+Then recreate the cluster:
 
 ```bash
-# For Intel/AMD
-docker pull --platform linux/amd64 lotfinejad/airflow-pyspark:latest
-
-# For ARM (Apple Silicon)
-docker pull --platform linux/arm64 lotfinejad/airflow-pyspark:latest
-
-# Load into Kind cluster
-kind load docker-image lotfinejad/airflow-pyspark:latest --name airflow-cluster
+kind delete cluster --name airflow-cluster
+kind create cluster --name airflow-cluster --config kind-config.yaml
 ```
 
-## DAGs and Examples
+## Accessing Airflow UI
 
-### Available DAGs
+### Default Credentials
 
-1. **Hello World DAG** ([`dags/hello_world_dag.py`](dags/hello_world_dag.py))
-   - Simple demonstration DAG
-   - Python and Bash operators
-   - Daily schedule
+- **URL:** `http://localhost:30080` (or `http://localhost:8080` if using port forwarding)
+- **Username:** `admin`
+- **Password:** `admin`
 
-2. **Spark WordCount DAG** ([`dags/spark_wordcount.py`](dags/spark_wordcount.py))
-   - PySpark job execution via BashOperator
-   - Processes [`scripts/sample_text.txt`](scripts/sample_text.txt)
-   - Manual trigger only
+### First Login
 
+1. Navigate to the Airflow UI
+2. Login with default credentials
+3. You should see the DAGs view with sample DAGs
+4. Toggle DAGs on/off using the switch
 
+## DAGs & Examples
 
-### Sample PySpark Job
+### Included DAGs
 
-The [`scripts/wordcount.py`](scripts/wordcount.py) demonstrates a complete PySpark application:
+| DAG                         | Description                      | Key Features                                |
+| --------------------------- | -------------------------------- | ------------------------------------------- |
+| `hello_world_dag`           | Basic workflow example           | Python & Bash operators, task dependencies  |
+| `one_task_dag`              | Minimal single task example      | Simple Python operator                      |
+| `spark_wordcount`           | PySpark integration demo         | SparkSubmitOperator, distributed processing |
+| `test_kubernetes_executor`  | Kubernetes executor validation   | Tests dynamic pod creation                  |
+
+### Creating New DAGs
+
+1. Create a new Python file in the `dags/` directory
+2. Define your DAG using Airflow's decorators or context managers
+3. Save the file - Airflow will auto-detect it within 30 seconds
+
+Example DAG structure:
 
 ```python
-# Example usage in DAG
-spark_wordcount_task = BashOperator(
-    task_id='spark_wordcount_task',
-    bash_command="""
-    rm -rf /opt/airflow/scripts/output &&
-    spark-submit /opt/airflow/scripts/wordcount.py /opt/airflow/scripts/sample_text.txt /opt/airflow/scripts/output
-    """,
-)
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+
+default_args = {
+    'owner': 'data-team',
+    'retries': 1,
+    'retry_delay': timedelta(minutes=5),
+}
+
+with DAG(
+    'my_new_dag',
+    default_args=default_args,
+    description='My custom DAG',
+    schedule_interval='@daily',
+    start_date=datetime(2024, 1, 1),
+    catchup=False,
+) as dag:
+    
+    def my_task():
+        print("Hello from my task!")
+    
+    task = PythonOperator(
+        task_id='my_task',
+        python_callable=my_task,
+    )
 ```
 
-## Deployment Components
+## Development Workflow
 
-### Kubernetes Resources
+### Hot Reloading
 
-The [`templates/`](templates/) directory contains all Kubernetes manifests:
+Changes to the following directories are reflected immediately:
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| ConfigMap | [`airflow-configmap.yaml`](templates/airflow-configmap.yaml) | Airflow environment configuration |
-| Init Job | [`airflow-init-job.yaml`](templates/airflow-init-job.yaml) | Database initialization and user creation |
-| Scheduler | [`airflow-scheduler-deployment.yaml`](templates/airflow-scheduler-deployment.yaml) | Airflow scheduler deployment |
-| Webserver | [`airflow-webserver-deployment.yaml`](templates/airflow-webserver-deployment.yaml) | Airflow webserver deployment |
-| Service | [`airflow-webserver-service.yaml`](templates/airflow-webserver-service.yaml) | Webserver service exposure |
-| PostgreSQL | [`postgresql-deployment.yaml`](templates/postgresql-deployment.yaml) | Database deployment |
-| PostgreSQL Service | [`postgresql-service.yaml`](templates/postgresql-service.yaml) | Database service |
-| Storage | [`postgresql-pvc.yaml`](templates/postgresql-pvc.yaml) | Persistent volume claim |
+- `dags/` - New DAGs appear in UI within 30 seconds
+- `scripts/` - Updated scripts used on next task run
+- `plugins/` - Custom operators/hooks available after scheduler restart
 
-### Health Checks
+### Testing DAGs Locally
 
-All deployments include comprehensive health checks:
+```bash
+# Test DAG loading
+kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags list
+
+# Test specific DAG
+kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags test <dag_id> <date>
+
+# Trigger DAG manually
+kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags trigger <dag_id>
+```
+
+### Viewing Logs
+
+```bash
+# Scheduler logs
+kubectl logs deployment/airflow-scheduler -n airflow -f
+
+# Webserver logs
+kubectl logs deployment/airflow-webserver -n airflow -f
+
+# Task logs (available in UI or in logs/ directory)
+tail -f logs/dag_id=<dag_id>/run_id=<run_id>/task_id=<task_id>/attempt=1.log
+```
+
+## Configuration
+
+### Key Configuration Files
+
+| File                                    | Purpose              | Key Settings                                 |
+| --------------------------------------- | -------------------- | -------------------------------------------- |
+| `values.yaml`                           | Helm value overrides | Host paths, resource limits, executor config |
+| `Chart.yaml`                            | Helm chart metadata  | Version, dependencies, app info              |
+| `kind-config.yaml`                      | Kind cluster setup   | Port mappings, volume mounts                 |
+| `templates/airflow-configmap.yaml`      | Airflow environment  | JAVA_HOME, Python paths                      |
+
+### Common Customizations
+
+#### Increase Resources
+
+In `values.yaml`:
 
 ```yaml
-livenessProbe:
-  httpGet:
-    path: /health
-    port: 8080
-  initialDelaySeconds: 120
-  periodSeconds: 30
-
-readinessProbe:
-  httpGet:
-    path: /health
-    port: 8080
-  initialDelaySeconds: 60
-  periodSeconds: 10
+scheduler:
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
 ```
 
-## Operations Guide
+#### Add Python Dependencies
 
-### Starting the Environment
+Create a custom Dockerfile:
 
-```bash
-# 1. Update configuration files (see Configuration section above)
-
-# 2. Create cluster
-kind create cluster --config kind-config.yaml --name airflow-cluster
-
-# 3. Deploy application
-helm install airflow-pyspark . -f values.yaml    
-
-# 4. Wait for pods to be ready
-kubectl wait --for=condition=ready pod --all --timeout=300s
+```dockerfile
+FROM apache/airflow:2.7.0
+USER airflow
+COPY requirements.txt /
+RUN pip install --no-cache-dir -r /requirements.txt
 ```
 
-### Monitoring
+#### Configure Spark Resources
 
-```bash
-# Check pod status
-kubectl get pods
+In your DAG:
 
-# View logs
-kubectl logs -f deployment/airflow-webserver
-kubectl logs -f deployment/airflow-scheduler
-
-# Check services
-kubectl get services
-```
-
-### Accessing Components
-
-```bash
-# Airflow Web UI
-open http://localhost:30080
-
-# Port forward for direct access
-kubectl port-forward svc/airflow-webserver 8080:8080
-
-# Database access
-kubectl port-forward svc/airflow-postgresql 5432:5432
-```
-
-### Updating DAGs
-
-DAGs are automatically synchronized since they're mounted as volumes:
-
-```bash
-# Edit DAG files directly
-vim dags/my_new_dag.py
-
-# Changes are reflected immediately in Airflow
+```python
+spark_config = {
+    "spark.executor.memory": "2g",
+    "spark.executor.cores": "2",
+    "spark.executor.instances": "3",
+}
 ```
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues and Solutions
 
-1. **Volume mount issues**
-   ```bash
-   # Check if paths exist and are accessible
-   ls -la /Users/YOUR_USERNAME/airflow-pyspark-k8s/
-   
-   # Verify paths in values.yaml match your system
-   ```
-
-2. **Java architecture mismatch**
-   ```bash
-   # Check your CPU architecture
-   uname -m
-   
-   # Verify Java path in configmap matches your architecture
-   kubectl exec -it deployment/airflow-scheduler -- ls -la /usr/lib/jvm/
-   ```
-
-3. **Pods stuck in Pending state**
-   ```bash
-   kubectl describe pod <pod-name>
-   # Check for resource constraints or volume mount issues
-   ```
-
-4. **Database connection failures**
-   ```bash
-   kubectl logs deployment/airflow-init-db
-   # Verify PostgreSQL is running and accessible
-   ```
-
-5. **PySpark job failures**
-   ```bash
-   # Check Spark configuration in airflow-configmap.yaml
-   kubectl logs deployment/airflow-scheduler
-   ```
-
-### Architecture-Specific Troubleshooting
-
-**For Apple Silicon (M1/M2) users:**
-```bash
-# If experiencing image pull issues
-docker pull --platform linux/arm64 lotfinejad/airflow-pyspark:latest
-kind load docker-image lotfinejad/airflow-pyspark:latest --name airflow-cluster
-
-# Verify Java path
-kubectl exec -it deployment/airflow-scheduler -- ls -la /usr/lib/jvm/java-17-openjdk-arm64
-```
-
-**For Intel/AMD users:**
-```bash
-# If experiencing image pull issues  
-docker pull --platform linux/amd64 lotfinejad/airflow-pyspark:latest
-kind load docker-image lotfinejad/airflow-pyspark:latest --name airflow-cluster
-
-# Verify Java path
-kubectl exec -it deployment/airflow-scheduler -- ls -la /usr/lib/jvm/java-17-openjdk-amd64
-```
-
-### Log Locations
-
-- **Airflow Logs**: [`logs/`](logs/) directory
-- **Scheduler Logs**: `kubectl logs deployment/airflow-scheduler`
-- **Webserver Logs**: `kubectl logs deployment/airflow-webserver`
-- **Database Logs**: `kubectl logs deployment/airflow-postgresql`
-
-### Cleanup
+#### Pod Stuck in Pending/CrashLoopBackOff
 
 ```bash
-# Uninstall Helm release
-helm uninstall airflow-pyspark
+# Describe pod for events
+kubectl describe pod <pod-name> -n airflow
 
-# Delete Kind cluster
-kind delete cluster --name airflow-cluster
+# Check logs
+kubectl logs <pod-name> -n airflow --previous
 
-# Clean up volumes (if needed)
-docker volume prune
+# Common fixes:
+# - Check resource availability: kubectl top nodes
+# - Verify volume mounts exist
+# - Check RBAC permissions
 ```
 
-## Development
+#### Volume Mount Failures
 
-### Custom Docker Image
+```bash
+# Verify paths exist on host
+ls -la /Users/YOUR_USERNAME/airflow-pyspark-k8s/
 
-The setup uses a custom image (`lotfinejad/airflow-pyspark:latest`) that includes:
-- Apache Airflow 2.8.1
-- PySpark integration
-- Java 17 runtime (multi-architecture support)
-- Required Python dependencies
+# Check Kind node mounts
+docker exec -it airflow-cluster-control-plane ls -la /workspace/
 
-### Adding New DAGs
-
-1. Create DAG file in [`dags/`](dags/) directory
-2. DAG will be automatically picked up by Airflow
-3. Refresh the web UI to see new DAGs
-
-### Modifying Configuration
-
-1. Update [`values.yaml`](values.yaml) with your paths and settings
-2. Update [`templates/airflow-configmap.yaml`](templates/airflow-configmap.yaml) for your architecture
-3. Upgrade the Helm release:
-   ```bash
-   helm upgrade airflow-pyspark . --timeout 10m
-   ```
-
-## Pre-Deployment Checklist
-
-Before running the deployment, ensure you have:
-
-- [ ] Updated [`values.yaml`](values.yaml) with your username in volume paths
-- [ ] Updated [`kind-config.yaml`](kind-config.yaml) with your username in hostPath
-- [ ] Set correct `JAVA_HOME` in [`templates/airflow-configmap.yaml`](templates/airflow-configmap.yaml) for your CPU architecture
-- [ ] Verified Docker is running
-- [ ] Confirmed your current directory is the project root
-
-## Resource Requirements
-
-### Minimum Requirements
-- **CPU**: 2 cores
-- **Memory**: 4GB RAM
-- **Storage**: 10GB available space
-
-### Production Recommendations
-- **CPU**: 4+ cores
-- **Memory**: 8GB+ RAM
-- **Storage**: 50GB+ SSD storage
-
-## Security Considerations
-
-### Default Credentials
-⚠️ **Warning**: Change default credentials in production!
-
-```yaml
-# In airflow-init-job.yaml
-airflow users create \
-  --username admin \
-  --password admin \  # Change this!
-  --role Admin
+# Ensure proper permissions
+chmod -R 755 dags/ scripts/ logs/ plugins/
 ```
 
-### Database Security
-- Use secrets instead of plain text passwords
-- Enable SSL/TLS for database connections
-- Implement network policies for pod-to-pod communication
+#### Spark Job Failures
 
-## Contributing
+```bash
+# Find Spark driver pod
+kubectl get pods -n airflow | grep spark-
 
-1. Fork the repository
-2. Create a feature branch
-3. Make changes and test locally
-4. Submit a pull request
+# Check driver logs
+kubectl logs <spark-driver-pod> -n airflow
+
+# Common issues:
+# - JAVA_HOME not set correctly
+# - Insufficient memory for executors
+# - PySpark version mismatch
+```
+
+#### Database Connection Issues
+
+```bash
+# Check PostgreSQL pod
+kubectl logs deployment/postgres -n airflow
+
+# Test connection
+kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow db check
+```
+
+### Debug Commands Cheatsheet
+
+```bash
+# Get all resources in airflow namespace
+kubectl get all -n airflow
+
+# Describe deployments
+kubectl describe deployment -n airflow
+
+# Execute commands in scheduler
+kubectl exec -it deployment/airflow-scheduler -n airflow -- bash
+
+# Check Airflow configuration
+kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow config list
+
+# Force restart deployments
+kubectl rollout restart deployment -n airflow
+```
+
+## Production Considerations
+
+### Security
+
+- [ ] Change default passwords
+- [ ] Enable RBAC in Airflow
+- [ ] Use secrets management (Kubernetes Secrets, HashiCorp Vault)
+- [ ] Configure network policies
+- [ ] Enable TLS/SSL
+
+### Scalability
+
+- [ ] Use external PostgreSQL (RDS, Cloud SQL)
+- [ ] Configure autoscaling for workers
+- [ ] Use distributed storage (S3, GCS) for logs
+- [ ] Implement resource quotas
+
+### Monitoring
+
+- [ ] Deploy Prometheus & Grafana
+- [ ] Configure Airflow metrics export
+- [ ] Set up log aggregation (ELK, Fluentd)
+- [ ] Create alerting rules
+
+### High Availability
+
+- [ ] Multiple scheduler replicas (Airflow 2.0+)
+- [ ] Database replication
+- [ ] Multi-zone node pools
+- [ ] Backup strategies
 
 ## License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+------
 
-For issues and questions:
-- Create an issue in the GitHub repository
-- Check the troubleshooting section above
-- Review Airflow and Kubernetes documentation
+**Ready to orchestrate your data pipelines?** Star this repo and start building!
+
+For questions and support, please open an [issue](https://github.com/datatweets/airflow-pyspark-k8s/issues) or join our [discussions](https://github.com/datatweets/airflow-pyspark-k8s/discussions).

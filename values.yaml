@@ -1,44 +1,72 @@
-# Airflow Configuration
 airflow:
   image:
     repository: lotfinejad/airflow-pyspark
     tag: latest
-    pullPolicy: IfNotPresent  # Changed to Always to ensure latest image
-  
+    pullPolicy: IfNotPresent
+
   webserver:
     replicas: 1
     port: 8080
-    
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
   scheduler:
     replicas: 1
-    
-  executor: LocalExecutor
-  
-  # Database connection
+    livenessProbe:
+      enabled: true
+      initialDelaySeconds: 60
+      periodSeconds: 30
+      timeoutSeconds: 10
+      failureThreshold: 5
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+  workers:
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+
+  executor: KubernetesExecutor
+
   database:
     host: airflow-postgresql
     port: 5432
     database: airflow
     username: airflow
     password: airflow
+    url: "postgresql+psycopg2://airflow:airflow@airflow-postgresql:5432/airflow"
 
 # PostgreSQL Configuration
 postgresql:
   enabled: true
   image:
     repository: postgres
-    tag: 13-alpine  # Using alpine for smaller size
+    tag: 13-alpine
     pullPolicy: IfNotPresent
-  
+
   auth:
     username: airflow
     password: airflow
     database: airflow
-  
+
   persistence:
     enabled: true
     size: 2Gi
-    
+
 # Service Configuration
 service:
   type: NodePort
@@ -51,16 +79,16 @@ persistence:
   storageClass: "standard"
   accessMode: ReadWriteOnce
   size: 5Gi
-  
+
 # Volume paths - using the mounted path in kind
 volumes:
   hostPaths:
-    dags: /Users/lotfinejad/airflow-pyspark-k8s/dags
-    scripts: /Users/lotfinejad/airflow-pyspark-k8s/scripts
-    logs: /Users/lotfinejad/airflow-pyspark-k8s/logs
-    plugins: /Users/lotfinejad/airflow-pyspark-k8s/plugins
+    dags:    /workspace/dags
+    scripts: /workspace/scripts
+    logs:    /workspace/logs
+    plugins: /workspace/plugins
 
-# Resource limits
+# Resource limits (corrected structure)
 resources:
   webserver:
     requests:
@@ -76,3 +104,28 @@ resources:
     limits:
       memory: "2Gi"
       cpu: "1000m"
+    
+  worker:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "500m"
+
+rbac:
+  create: true
+
+serviceAccount:
+  create: true
+  name: "airflow-worker"
+
+kubernetes:
+  namespace: "default"
+  worker_container_repository: "lotfinejad/airflow-pyspark"
+  worker_container_tag: "latest"
+  delete_worker_pods: true
+  delete_worker_pods_on_failure: false
+  worker_pods_creation_batch_size: 1
+  multi_namespace_mode: false
+  worker_service_account_name: "airflow-worker"

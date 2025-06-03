@@ -1,93 +1,95 @@
+# templates/airflow-scheduler-deployment.yaml
+# --------------------------------------------
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: airflow-scheduler
   labels:
     app: airflow-scheduler
-    component: scheduler
-    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
 spec:
   replicas: {{ .Values.airflow.scheduler.replicas }}
   selector:
     matchLabels:
       app: airflow-scheduler
-      component: scheduler
   template:
     metadata:
       labels:
         app: airflow-scheduler
-        component: scheduler
     spec:
+      serviceAccountName: airflow-scheduler
       initContainers:
-      - name: wait-for-postgres
-        image: busybox:1.35
-        command: 
-        - sh
-        - -c
-        - |
-          until nc -z {{ .Values.airflow.database.host }} {{ .Values.airflow.database.port }}; do
-            echo "Waiting for PostgreSQL..."
-            sleep 2
-          done
-          echo "PostgreSQL is ready!"
-      - name: wait-for-db-init
-        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
-        command:
-        - sh
-        - -c
-        - |
-          until airflow db check; do
-            echo "Waiting for database initialization..."
-            sleep 5
-          done
-          echo "Database is initialized!"
-        envFrom:
-        - configMapRef:
-            name: airflow-config
-      containers:
-      - name: airflow-scheduler
-        image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
-        imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
-        command: ["airflow", "scheduler"]
-        envFrom:
-        - configMapRef:
-            name: airflow-config
-        volumeMounts:
-        - name: dags
-          mountPath: /opt/airflow/dags
-        - name: scripts
-          mountPath: /opt/airflow/scripts
-        - name: logs
-          mountPath: /opt/airflow/logs
-        - name: plugins
-          mountPath: /opt/airflow/plugins
-        livenessProbe:
-          exec:
-            command:
+        - name: wait-for-postgres
+          image: busybox:1.35
+          command:
             - sh
             - -c
             - |
-              airflow jobs check --job-type SchedulerJob --hostname $(hostname)
-          initialDelaySeconds: 120
-          periodSeconds: 60
-          timeoutSeconds: 10
-          failureThreshold: 5
-        resources:
-          {{- toYaml .Values.resources.scheduler | nindent 10 }}
+              until nc -z {{ .Values.airflow.database.host }} {{ .Values.airflow.database.port }}; do
+                echo "Waiting for PostgreSQL..."
+                sleep 2
+              done
+              echo "PostgreSQL is ready!"
+        - name: init-db
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+            - airflow db init
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+
+      containers:
+        - name: airflow-scheduler
+          image: "{{ .Values.airflow.image.repository }}:{{ .Values.airflow.image.tag }}"
+          imagePullPolicy: {{ .Values.airflow.image.pullPolicy }}
+          command: ["airflow", "scheduler"]
+          envFrom:
+            - configMapRef:
+                name: airflow-config
+          volumeMounts:
+            - name: dags
+              mountPath: /opt/airflow/dags
+            - name: scripts
+              mountPath: /opt/airflow/scripts
+            - name: logs
+              mountPath: /opt/airflow/logs
+            - name: plugins
+              mountPath: /opt/airflow/plugins
+            - name: pod-template
+              mountPath: /opt/airflow/pod-template
+          livenessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - airflow jobs check --job-type SchedulerJob --hostname $(hostname)
+            initialDelaySeconds: {{ .Values.airflow.scheduler.livenessProbe.initialDelaySeconds | default 60 }}
+            periodSeconds: {{ .Values.airflow.scheduler.livenessProbe.periodSeconds | default 30 }}
+            timeoutSeconds: {{ .Values.airflow.scheduler.livenessProbe.timeoutSeconds | default 10 }}
+            failureThreshold: {{ .Values.airflow.scheduler.livenessProbe.failureThreshold | default 5 }}
+
+          resources:
+            {{- toYaml .Values.resources.scheduler | nindent 12 }}
+
       volumes:
-      - name: dags
-        hostPath:
-          path: {{ .Values.volumes.hostPaths.dags }}
-          type: DirectoryOrCreate
-      - name: scripts
-        hostPath:
-          path: {{ .Values.volumes.hostPaths.scripts }}
-          type: DirectoryOrCreate
-      - name: logs
-        hostPath:
-          path: {{ .Values.volumes.hostPaths.logs }}
-          type: DirectoryOrCreate
-      - name: plugins
-        hostPath:
-          path: {{ .Values.volumes.hostPaths.plugins }}
-          type: DirectoryOrCreate
+        - name: dags
+          hostPath:
+            path: {{ .Values.volumes.hostPaths.dags }}
+            type: DirectoryOrCreate
+        - name: scripts
+          hostPath:
+            path: {{ .Values.volumes.hostPaths.scripts }}
+            type: DirectoryOrCreate
+        - name: logs
+          hostPath:
+            path: {{ .Values.volumes.hostPaths.logs }}
+            type: DirectoryOrCreate
+        - name: plugins
+          hostPath:
+            path: {{ .Values.volumes.hostPaths.plugins }}
+            type: DirectoryOrCreate
+        - name: pod-template
+          configMap:
+            name: worker-pod-template

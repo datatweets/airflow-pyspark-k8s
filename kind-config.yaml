@@ -8,4 +8,4 @@ nodes:
     protocol: TCP
   extraMounts:
   - hostPath: /Users/lotfinejad/airflow-pyspark-k8s
-    containerPath: /Users/lotfinejad/airflow-pyspark-k8s
+    containerPath: /workspace
