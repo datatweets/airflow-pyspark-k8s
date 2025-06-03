@@ -9,7 +9,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='parallel_notifications',
+    dag_id='04_parallel_notifications',
     description='Send notifications to multiple channels in parallel',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),

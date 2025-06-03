@@ -12,7 +12,7 @@ default_args = {
 # Using the context manager syntax (with statement) is more Pythonic
 # It ensures proper cleanup and makes the code cleaner
 with DAG(
-    dag_id='hello_world_enhanced',
+    dag_id='02_hello_world_enhanced',
     description='Enhanced Hello World with multiple tasks',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),

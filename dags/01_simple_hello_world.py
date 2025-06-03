@@ -13,7 +13,7 @@ default_args = {
 # The DAG object represents your entire workflow
 # It's like the blueprint that tells Airflow what to do and when
 dag = DAG(
-    dag_id='simple_hello_world',  # Unique identifier for your DAG
+    dag_id='01_simple_hello_world',  # Unique identifier for your DAG
     description='Our first "Hello World" DAG!',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),  # When the DAG becomes active
