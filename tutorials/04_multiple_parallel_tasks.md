@@ -195,7 +195,7 @@ In this pattern, once the report is generated, all four notification tasks run s
 
 When you trigger these DAGs and view them in the Graph view, you'll see different patterns:
 
-For the first DAG (parallel_data_processing), you'll see a diamond-like pattern where tasks spread out and then converge. The visualization clearly shows which tasks can run simultaneously and where they must wait for others.
+For the first DAG (parallel_data_processing), you'll see a pattern where tasks spread out and then converge. The visualization clearly shows which tasks can run simultaneously and where they must wait for others.
 
 For the second DAG (parallel_notifications), you'll see a fan-out pattern where one task branches into multiple parallel tasks that never reconverge.
 
