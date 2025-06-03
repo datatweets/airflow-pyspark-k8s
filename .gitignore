@@ -3,7 +3,6 @@ scripts/output/
 dags/__pycache__/
 *.log
 scripts/scheduler/
-
 scripts/dag_processor_manager
 dags/simple_xcom_example.py
 .DS_Store
@@ -12,6 +11,11 @@ dags-archive/
 scripts/temp/extracted_customers/
 scripts/temp/extracted_sales/
 __pycache__/
-
 scripts/input/
+
+# Exclude specific DAG files (instead of dags/*)
+dags/test_*.py
+dags/experimental_*.py
+dags/old_*.py
+# Or keep dags/* to exclude everything
 dags/*
