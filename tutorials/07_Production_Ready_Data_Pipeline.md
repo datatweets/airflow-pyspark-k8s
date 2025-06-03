@@ -9,7 +9,7 @@ In our setup, we maintain a clean separation of concerns:
 ```
 airflow-pyspark-k8s/
 ├── dags/
-│   └── insurance_pipeline_dag.py    # Only DAG definitions
+│   └── 08_insurance_pipeline_dag.py    # Only DAG definitions
 ├── scripts/
 │   ├── datasets/
 │   │   └── insurance.csv            # Input data
@@ -338,7 +338,7 @@ def generate_executive_summary(ti):
 
 Now let's create the DAG that orchestrates these functions. The DAG file will be minimal and focused only on defining the workflow.
 
-Create `/path/to/your/dags/insurance_pipeline_dag.py`:
+Create `/path/to/your/dags/08_insurance_pipeline_dag.py`:
 
 ```python
 """
@@ -379,7 +379,7 @@ default_args = {
 
 # Create the DAG
 with DAG(
-    dag_id='insurance_data_pipeline',
+    dag_id='08_insurance_data_pipeline',
     default_args=default_args,
     description='Process insurance data to analyze impact of smoking and regional factors',
     schedule_interval=None,  # Manual trigger for now
@@ -508,7 +508,7 @@ This ensures paths work correctly regardless of where Airflow is running from.
    ```bash
    /learn-airflow/
    ├── dags/
-   │   └── insurance_pipeline_dag.py
+   │   └── 08_insurance_pipeline_dag.py
    └── scripts/
        ├── datasets/
        │   └── insurance.csv
@@ -518,7 +518,7 @@ This ensures paths work correctly regardless of where Airflow is running from.
 
 2. **Access the Airflow UI** at `http://localhost:30080`
 
-3. **Find the DAG**: Look for `insurance_data_pipeline` in the DAG list
+3. **Find the DAG**: Look for `08_insurance_data_pipeline` in the DAG list
 
 4. **Trigger the DAG**: Click the play button to run it manually
 
