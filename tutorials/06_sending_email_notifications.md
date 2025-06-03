@@ -39,6 +39,7 @@ Now that 2FA is enabled, you can create App Passwords. Still in the Security sec
 Google might ask you to confirm your password again – this is normal and adds another layer of security. Once you're in the App passwords page, you'll see a field that says "App name." This is where you'll give your App Password a descriptive name.
 
 Type something meaningful like "Airflow Email DAG" or "Kubernetes Airflow SMTP." This name is just for your reference – it helps you remember what this password is for if you need to manage it later. Click "Create."
+<img width="1512" alt="Screenshot 2025-05-31 at 9 42 09 PM" src="https://github.com/user-attachments/assets/adbdc700-cd62-466b-bd08-fa5d4085072a" />
 
 ### Step 3: Save Your App Password
 
