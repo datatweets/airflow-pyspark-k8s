@@ -6,7 +6,11 @@ Email notifications are a crucial part of any production data pipeline. When you
 
 Think of email notifications as your pipeline's way of talking to you. Without them, you'd have to constantly check the Airflow UI to see if your DAGs are running correctly. That's not practical, especially for pipelines that run overnight or on weekends.
 
-Email notifications serve three main purposes in Airflow. First, they provide immediate alerts when something goes wrong, allowing you to respond quickly to failures. Second, they can deliver summaries of successful runs, giving you confidence that your data is being processed correctly. Third, they enable team collaboration by keeping everyone informed about pipeline status without requiring constant manual monitoring.
+Email notifications serve three main purposes in Airflow:
+ 
+- First, they provide immediate alerts when something goes wrong, allowing you to respond quickly to failures. 
+- Second, they can deliver summaries of successful runs, giving you confidence that your data is being processed correctly. 
+- Third, they enable team collaboration by keeping everyone informed about pipeline status without requiring constant manual monitoring.
 
 ## Understanding Gmail's Security: Why We Need App Passwords
 
@@ -312,7 +316,8 @@ Email notifications transform Airflow from a silent background worker into a com
 
 The example we built – collecting and emailing Python environment information – is just the beginning. You can adapt this pattern to send data quality reports, alert on specific business conditions, or provide daily summaries of processed data. The combination of Airflow's orchestration power and email's universal accessibility creates a robust notification system for your data pipelines.
 
-Remember, the goal of email notifications is to give you peace of mind. When your pipelines run successfully, you know about it. When they fail, you know about it immediately. This visibility is crucial for maintaining reliable data operations, especially in a Kubernetes environment where pods come and go dynamically.
+*Remember, the goal of email notifications is to give you peace of mind. When your pipelines run successfully, you know about it. When they fail, you know about it immediately. This visibility is crucial for maintaining reliable data operations, especially in a Kubernetes environment where pods come and go dynamically.*
+
 ---
 ## Appendix: Adding Multiple Recipients to Your Email Notifications
 
