@@ -27,7 +27,7 @@ default_args = {
 
 # Create our DAG using the context manager
 with DAG(
-    dag_id='parallel_data_processing',
+    dag_id='03_parallel_data_processing',
     description='Demonstrates parallel task execution',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
@@ -148,7 +148,7 @@ default_args = {
 }
 
 with DAG(
-    dag_id='parallel_notifications',
+    dag_id='04_parallel_notifications',
     description='Send notifications to multiple channels in parallel',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),

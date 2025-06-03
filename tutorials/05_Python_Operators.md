@@ -60,7 +60,7 @@ def create_sales_data():
 
 # Define our DAG
 with DAG(
-    dag_id='python_sales_analysis',
+    dag_id='05_python_sales_analysis',
     description='Analyze sales data using Python operators',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
@@ -203,7 +203,7 @@ def create_summary_report(**context):
 
 # Now, within our DAG context, let's create all the tasks
 with DAG(
-    dag_id='python_sales_analysis',
+    dag_id='06_python_sales_analysis_complete',
     description='Analyze sales data using Python operators',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),

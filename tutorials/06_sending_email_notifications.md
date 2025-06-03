@@ -7,7 +7,7 @@ Email notifications are a crucial part of any production data pipeline. When you
 Think of email notifications as your pipeline's way of talking to you. Without them, you'd have to constantly check the Airflow UI to see if your DAGs are running correctly. That's not practical, especially for pipelines that run overnight or on weekends.
 
 Email notifications serve three main purposes in Airflow:
- 
+
 - First, they provide immediate alerts when something goes wrong, allowing you to respond quickly to failures. 
 - Second, they can deliver summaries of successful runs, giving you confidence that your data is being processed correctly. 
 - Third, they enable team collaboration by keeping everyone informed about pipeline status without requiring constant manual monitoring.
@@ -209,7 +209,7 @@ Your Airflow Pipeline
 
 # Create the DAG
 with DAG(
-    dag_id='email_notification_dag',
+    dag_id='07_email_notification_dag',
     description='Collect Python environment info and send via email',
     default_args=default_args,
     start_date=datetime(2024, 1, 1),
