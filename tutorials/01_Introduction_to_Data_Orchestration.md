@@ -703,7 +703,7 @@ with DAG(
 
 Throughout this run, you can watch the **Graph View** in the Airflow UI. You see three colored squares:
 
-- **Green** steps are success, **yellow** are running, **red** are failed. You click on a task box to view logs or manually re-run just that step.
+- **Dark Green** steps are success, **Light Green** are running, **Red** are failed. You click on a task box to view logs or manually re-run just that step.
 
 ------
 

@@ -1,5 +1,5 @@
 # Navigating and Exploring the Airflow UI
-
+##### Mohammad Mehdi Lotfinejad
 ## Introduction
 
 This tutorial will guide you through the Apache Airflow UI, showing you how to navigate, monitor, and debug your data pipelines. We'll explore the main features using example DAGs provided by Airflow.
@@ -51,9 +51,9 @@ After logging in, you'll be taken to the main DAGs list page showing all availab
 
 Each DAG shows circular indicators representing:
 
-- **Green circle**: Successful runs
+- **Dark Green circle**: Successful runs
 - **Red circle**: Failed runs
-- **Yellow circle**: Running
+- **Light Green circle**: Running
 - **Gray circle**: Queued
 - **Numbers inside**: Count of runs in that status
 
@@ -125,9 +125,7 @@ Small circles on the right show individual task statuses:
 ### How to Trigger:
 
 1. Click the Play button (▶️) in the DAG view
-2. See "Trigger DAG" popup
-3. Confirm to execute immediately
-4. Observe the new run appearing
+2. Observe the new run appearing
 
 
 

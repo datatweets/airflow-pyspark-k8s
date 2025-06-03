@@ -175,6 +175,175 @@ The line `hello_task >> date_task >> python_task` creates a dependency chain. Th
 
 In Kubernetes terms, this means three separate pods will be created sequentially, each waiting for the previous one to complete.
 
+
+## **NOTE**
+
+The `**context` in your Airflow DAG is a dictionary that contains all the runtime information about the current task execution. Let me break this down:
+
+## What is `**context`?
+
+The `**context` is Python's **keyword argument unpacking**. When Airflow calls your function, it passes a dictionary of context variables, and `**context` unpacks all key-value pairs from that dictionary as keyword arguments to your function.
+
+## Key Context Variables
+
+Here are the most important keys available in the context dictionary:
+
+### Core Execution Context
+```python
+def print_context(**context):
+    # Task and DAG information
+    task = context['task']                    # Current task object
+    dag = context['dag']                      # Current DAG object
+    task_instance = context['ti']             # TaskInstance object
+    
+    # Timing information
+    execution_date = context['execution_date']    # Logical execution date
+    ds = context['ds']                        # Execution date as string (YYYY-MM-DD)
+    ds_nodash = context['ds_nodash']          # Execution date without dashes (YYYYMMDD)
+    
+    # Previous/Next execution dates
+    prev_ds = context['prev_ds']              # Previous execution date
+    next_ds = context['next_ds']              # Next execution date
+    
+    # Runtime information
+    run_id = context['run_id']                # Unique run identifier
+    dag_run = context['dag_run']              # DagRun object
+```
+
+### Task Instance Details
+```python
+def detailed_context_example(**context):
+    ti = context['ti']  # TaskInstance
+    
+    print(f"Task ID: {ti.task_id}")
+    print(f"DAG ID: {ti.dag_id}")
+    print(f"Execution Date: {ti.execution_date}")
+    print(f"State: {ti.state}")
+    print(f"Try Number: {ti.try_number}")
+    print(f"Hostname: {ti.hostname}")
+    print(f"Log URL: {ti.log_url}")
+```
+
+### Configuration and Parameters
+```python
+def config_context_example(**context):
+    # DAG configuration
+    dag = context['dag']
+    print(f"DAG Description: {dag.description}")
+    print(f"DAG Tags: {dag.tags}")
+    
+    # Task configuration
+    task = context['task']
+    print(f"Task Pool: {task.pool}")
+    print(f"Task Owner: {task.owner}")
+    
+    # Runtime parameters (if using dag_run.conf)
+    params = context.get('params', {})
+    print(f"Parameters: {params}")
+```
+
+## Complete Context Keys Reference
+
+Here's a comprehensive list of available context keys:
+
+````python
+def complete_context_example(**context):
+    """Complete example showing all major context keys"""
+    
+    print("=== CORE OBJECTS ===")
+    print(f"dag: {context['dag']}")                          # DAG object
+    print(f"task: {context['task']}")                        # Task object  
+    print(f"ti (task_instance): {context['ti']}")            # TaskInstance object
+    print(f"dag_run: {context['dag_run']}")                  # DagRun object
+    
+    print("\n=== DATES & TIMING ===")
+    print(f"execution_date: {context['execution_date']}")    # Logical execution date
+    print(f"ds: {context['ds']}")                           # Date string YYYY-MM-DD
+    print(f"ds_nodash: {context['ds_nodash']}")             # Date string YYYYMMDD
+    print(f"ts: {context['ts']}")                           # Timestamp ISO format
+    print(f"ts_nodash: {context['ts_nodash']}")             # Timestamp no separators
+    print(f"ts_nodash_with_tz: {context['ts_nodash_with_tz']}")  # Timestamp with timezone
+    
+    print("\n=== PREVIOUS/NEXT DATES ===")
+    print(f"prev_ds: {context.get('prev_ds')}")             # Previous execution date
+    print(f"prev_ds_nodash: {context.get('prev_ds_nodash')}")
+    print(f"next_ds: {context.get('next_ds')}")             # Next execution date
+    print(f"next_ds_nodash: {context.get('next_ds_nodash')}")
+    
+    print("\n=== EXECUTION INFO ===")
+    print(f"run_id: {context['run_id']}")                   # Unique run ID
+    print(f"task_instance_key_str: {context['task_instance_key_str']}")  # Unique task key
+    
+    print("\n=== CONFIGURATION ===")
+    print(f"conf: {context.get('conf')}")                   # Airflow configuration
+    print(f"params: {context.get('params', {})}")          # Task parameters
+    print(f"var: {context.get('var')}")                     # Variable accessor
+    
+    print("\n=== ADVANCED ===")
+    print(f"templates_dict: {context.get('templates_dict')}")  # Template variables
+    print(f"test_mode: {context.get('test_mode')}")         # Whether in test mode
+````
+
+## Practical Usage Examples
+
+### 1. Using Context for Dynamic File Paths
+```python
+def process_daily_file(**context):
+    # Use execution date for file naming
+    date_str = context['ds']  # YYYY-MM-DD format
+    input_file = f"/data/input/sales_{date_str}.csv"
+    output_file = f"/data/output/processed_{date_str}.csv"
+    
+    print(f"Processing {input_file} -> {output_file}")
+    return f"Processed file for {date_str}"
+```
+
+### 2. Accessing Task Information
+```python
+def log_task_details(**context):
+    ti = context['ti']
+    task = context['task']
+    
+    print(f"Running task '{task.task_id}' in DAG '{task.dag_id}'")
+    print(f"Attempt #{ti.try_number}")
+    print(f"Running on: {ti.hostname}")
+    print(f"Start time: {ti.start_date}")
+```
+
+### 3. Using XCom with Context
+```python
+def use_previous_result(**context):
+    ti = context['ti']
+    
+    # Pull data from previous task
+    previous_result = ti.xcom_pull(task_ids='previous_task')
+    print(f"Previous task returned: {previous_result}")
+    
+    # Push data for next task
+    ti.xcom_push(key='processed_count', value=100)
+```
+
+## Modern Alternative: Decorated Approach
+
+In newer Airflow versions (2.0+), you can also use the `@task` decorator which automatically provides context:
+
+```python
+from airflow.decorators import task
+
+@task
+def modern_python_task(execution_date=None, task_instance=None, **context):
+    """Modern way using task decorator with specific context parameters"""
+    print(f"Execution date: {execution_date}")
+    print(f"Task instance: {task_instance.task_id}")
+    print(f"Full context keys: {list(context.keys())}")
+    return "Modern task completed!"
+```
+
+
+This makes your tasks context-aware and enables dynamic, data-driven workflows that can adapt based on when and how they're executed.
+
+---
+
 ## Viewing Logs and Debugging
 
 In your Kubernetes setup, logs are particularly important because pods are ephemeral. To view logs:
