@@ -972,7 +972,7 @@ By mastering these core building blocks, you can assemble complex, reliable, and
 
 ------
 
-## Introduction to the TaskFlow API
+<!-- ## Introduction to the TaskFlow API
 
 Airflow’s TaskFlow API is a modern, Python-native interface that makes writing workflows much more intuitive and straightforward. Instead of instantiating operators and manually linking tasks with helper functions or bitwise operators, you simply write Python functions and decorate them to become tasks. This approach feels natural to any Python developer: define a function, add a decorator, and Airflow does the rest under the hood.
 
@@ -995,7 +995,7 @@ At a high level, the TaskFlow API lets you:
 5. **Dynamic Workflows with Familiar Python Constructs**
     Need to loop over a list of files or generate tasks based on external configuration? With TaskFlow, you simply use Python loops, list comprehensions, or dictionary comprehensions inside your DAG function. Airflow automatically interprets those loops and creates a corresponding set of task instances at runtime.
 
----
+--- -->
 
 ## Wrap-Up
 
@@ -1003,7 +1003,7 @@ Throughout this session, we explored the foundations of data orchestration and i
 
 After seeing why orchestration matters and how different platforms approach it, we dove deeper into Airflow. We explained Airflow’s core architecture: how the Scheduler scans and parses DAG files, how Executors run tasks (whether as local processes, Celery workers, or Kubernetes pods), how the Metadata Database tracks state, and how the Web UI provides real-time feedback. Finally, we detailed how Airflow’s Scheduler and Executor work together in a continuous loop: parsing DAGs, queuing ready tasks, executing them in parallel, handling retries on failure, updating states, and triggering downstream tasks.
 
-In the next part, we will leverage this conceptual grounding to build actual Airflow pipelines—starting with defining DAGs, writing Operators and Sensors, using Variables and XCom for data passing, and exploring the TaskFlow API. By mastering these core components, you will be ready to author, test, and deploy your first end-to-end workflows in Airflow.
+In the next part, we will leverage this conceptual grounding to build actual Airflow pipelines—starting with defining DAGs, writing Operators and Sensors, using Variables and XCom for data passing. By mastering these core components, you will be ready to author, test, and deploy your first end-to-end workflows in Airflow.
 
 
 
