@@ -1,11 +1,10 @@
-logs/
+logs/*
 scripts/output/
 values-modified.yaml
 dags/__pycache__/
 *.log
 scripts/scheduler/
-dags/get_python_details_via_email.py
-dags/get_python_details.py
+
 scripts/dag_processor_manager
 dags/simple_xcom_example.py
 .DS_Store
@@ -14,3 +13,6 @@ dags-archive/
 scripts/temp/extracted_customers/
 scripts/temp/extracted_sales/
 __pycache__/
+
+scripts/input/
+dags/*
