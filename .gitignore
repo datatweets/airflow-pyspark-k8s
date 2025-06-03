@@ -1,6 +1,5 @@
 logs/*
 scripts/output/
-values-modified.yaml
 dags/__pycache__/
 *.log
 scripts/scheduler/
