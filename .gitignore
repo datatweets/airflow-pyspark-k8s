@@ -19,9 +19,6 @@ scripts/**/*.py
 scripts/*.sql
 scripts/**/*.sql
 
-# Exclude specific DAG files (instead of dags/*)
-dags/test_*.py
-dags/experimental_*.py
-dags/old_*.py
-# Or keep dags/* to exclude everything
+# Exclude all DAG files but keep the folder structure
 dags/*
+!dags/.gitkeep
