@@ -582,6 +582,75 @@ ti = MockTI()
 cleaned_data = ip.clean_insurance_data(ti)
 ```
 
+---
+## NOTE
+
+### MockTI Explained
+
+**MockTI** is a simple fake TaskInstance that lets you test Airflow functions outside of Airflow by simulating the `ti.xcom_pull()` and `ti.xcom_push()` behavior.
+
+### Simple Example
+
+````python
+# Your Airflow function that expects a TaskInstance
+def process_data(ti):
+    # This function expects to pull data from previous task
+    raw_data = ti.xcom_pull(task_ids='read_data')
+    processed = raw_data.upper()
+    return f"Processed: {processed}"
+
+# MockTI class to fake the TaskInstance
+class MockTI:
+    def __init__(self):
+        self._data = {}
+    
+    def xcom_pull(self, task_ids):
+        return self._data.get(task_ids)
+    
+    def set_data(self, task_id, data):
+        self._data[task_id] = data
+
+# Testing without Airflow
+mock_ti = MockTI()
+mock_ti.set_data('read_data', 'hello world')
+
+# Now you can test your function locally
+result = process_data(mock_ti)
+print(result)  # Output: "Processed: HELLO WORLD"
+````
+
+### Why Use MockTI?
+
+**Problem**: Your function needs `ti.xcom_pull()` but you want to test it without running Airflow.
+
+**Solution**: MockTI provides fake XCom data so you can:
+- ✅ Test functions locally
+- ✅ Debug without Airflow
+- ✅ Run in Jupyter notebooks
+- ✅ Write unit tests
+
+### Real Usage
+
+````python
+# In the tutorial example:
+import insurance_processing as ip
+
+# Create mock TaskInstance
+ti = MockTI()
+
+# Set up fake data from previous task
+ti.set_data('read_data', '{"age": 30, "charges": 1000}')
+
+# Test your function
+cleaned_data = ip.clean_insurance_data(ti)
+print("Function works!")
+````
+
+**Bottom line**: MockTI = Fake TaskInstance for testing Airflow functions outside Airflow.
+
+---
+
+
 ## Extending the Pipeline
 
 Here are some ways you can extend this pipeline:
