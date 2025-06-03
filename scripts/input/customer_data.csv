@@ -1,0 +1,9 @@
+customer_id,customer_name,email,city,state,registration_date
+C001,John Smith,john.smith@email.com,New York,NY,2023-03-15
+C002,Jane Doe,jane.doe@email.com,Los Angeles,CA,2023-04-20
+C003,Mike Johnson,mike.johnson@email.com,Chicago,IL,2023-05-10
+C004,Sarah Wilson,sarah.wilson@email.com,Houston,TX,2023-06-05
+C005,David Brown,david.brown@email.com,Phoenix,AZ,2023-07-12
+C006,Lisa Davis,lisa.davis@email.com,Philadelphia,PA,2023-08-18
+C007,Tom Miller,tom.miller@email.com,San Antonio,TX,2023-09-22
+C008,Emma Garcia,emma.garcia@email.com,San Diego,CA,2023-10-30

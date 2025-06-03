@@ -9,3 +9,8 @@ dags/get_python_details.py
 scripts/dag_processor_manager
 dags/simple_xcom_example.py
 .DS_Store
+scripts/processed/
+
+scripts/temp/extracted_customers/
+scripts/temp/extracted_sales/
+__pycache__/

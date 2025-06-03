@@ -65,8 +65,11 @@ spec:
                 - sh
                 - -c
                 - airflow jobs check --job-type SchedulerJob --hostname $(hostname)
-            initialDelaySeconds: 120
-            periodSeconds: 60
+            initialDelaySeconds: {{ .Values.airflow.scheduler.livenessProbe.initialDelaySeconds | default 60 }}
+            periodSeconds: {{ .Values.airflow.scheduler.livenessProbe.periodSeconds | default 30 }}
+            timeoutSeconds: {{ .Values.airflow.scheduler.livenessProbe.timeoutSeconds | default 10 }}
+            failureThreshold: {{ .Values.airflow.scheduler.livenessProbe.failureThreshold | default 5 }}
+
           resources:
             {{- toYaml .Values.resources.scheduler | nindent 12 }}
 
