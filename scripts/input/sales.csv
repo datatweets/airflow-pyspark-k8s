@@ -1,6 +1,0 @@
-product_id,product_name,category,price,quantity,sale_date
-1,Laptop,Electronics,999.99,2,2024-01-15
-2,Chair,Furniture,149.99,5,2024-01-15
-3,Coffee Maker,Appliances,79.99,1,2024-01-16
-4,Monitor,Electronics,299.99,3,2024-01-16
-5,Desk,Furniture,199.99,2,2024-01-17
