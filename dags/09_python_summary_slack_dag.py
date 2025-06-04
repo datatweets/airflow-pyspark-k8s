@@ -1,88 +1,3 @@
-# Set Up Slack Notifications in Airflow Using Airflow Variables
-
-This short guide walks you through:
-
-1. Creating a Slack webhook
-2. Storing it in Airflow Variables
-3. Sending Slack messages using your DAG
-
----
-
-## ✅ Step 1: Create a Slack Webhook
-
-Follow these steps **once** to generate your webhook URL and send messages to a Slack channel.
-
-### 1.1. Go to Slack API
-
-<img width="1512" alt="Screenshot 2025-06-01 at 4 49 42 PM" src="https://github.com/user-attachments/assets/8f24c44d-ef36-4153-b245-6f4f7c6c0c86" />
-
-Visit [https://api.slack.com/apps](https://api.slack.com/apps) and click **"Create New App"**.
-
----
-
-### 1.2. Choose "From scratch"
-
-<img width="1512" alt="slack00" src="https://github.com/user-attachments/assets/1a1722fc-1c0e-4f24-940b-14f7abaa8c11" />
-
-Select **"From scratch"** to start creating a new app manually.
-
----
-
-### 1.3. Name Your App & Select Workspace
-
-<img width="1512" alt="slack01" src="https://github.com/user-attachments/assets/30072604-06ae-4e8d-bfc9-5fb661437039" />
-
-* Give it a name like `Airflow Notifications`
-* Select your Slack workspace
-* Click **Create App**
-
----
-
-### 1.4. Enable Incoming Webhooks
-
-<img width="1512" alt="slack02" src="https://github.com/user-attachments/assets/c2ae3098-5653-4a83-979c-6879a18a6e3e" />
-
-Go to **Incoming Webhooks** in the sidebar and click **ON** to enable it.
-
----
-
-### 1.5. Add Webhook to Workspace
-
-<img width="1512" alt="slack05" src="https://github.com/user-attachments/assets/1fa1426f-6def-4711-90b7-704201a034e2" />
-
-Click **“Add New Webhook to Workspace”**, choose your target channel, and click **Allow**.
-
----
-
-### 1.6. Copy Webhook URL
-
-<img width="1512" alt="slack06" src="https://github.com/user-attachments/assets/da5ff40f-6d51-4050-80c6-bafe5c8b31fc" />
-
-Copy the generated URL. It will look like:
-
-```
-https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
-```
-
----
-
-## ✅ Step 2: Store Webhook URL in Airflow
-
-1. Go to **Admin → Variables** in the Airflow UI.
-2. Create a new variable:
-
-   * **Key**: `SLACK_WEBHOOK_URL`
-   * **Value**: paste your Slack webhook URL
-
-> ✅ This keeps the webhook secret and out of your code.
-
----
-
-## ✅ Step 3: Use the Code in Your DAG
-
-Below is the DAG that only sends a Slack message:
-
-```python
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
@@ -176,7 +91,7 @@ def notify_slack(**context):
         print("Slack notification sent!")
 
 with DAG(
-    dag_id='python_summary_slack_dag',
+    dag_id='09_python_summary_slack_dag',
     default_args=default_args,
     description='Collect Python summary and notify via Slack',
     schedule_interval=None,
@@ -198,12 +113,3 @@ with DAG(
     )
 
     collect_summary >> slack_notify
-```
-
----
-
-## What You’ve Learned
-
-* How to create a Slack app and get a webhook
-* How to store it securely in Airflow Variables
-* How to notify Slack from your DAG without exposing secrets
