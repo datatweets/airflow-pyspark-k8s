@@ -245,30 +245,29 @@ kind create cluster --name airflow-cluster --config kind-config.yaml
 ### 5. Apply RBAC Configuration
 
 ```bash
-kubectl apply -f k8s/rbac.yaml
+kubectl apply -f k8s/rbac-airflow.yaml
 ```
 
 ### 6. Deploy with Helm
 
 ```bash
 helm upgrade --install airflow-pyspark . \
-  --namespace airflow \
-  --create-namespace \
-  --values values.yaml \
-  --wait
+--namespace default \
+--values values.yaml \
+--wait
 ```
 
 ### 7. Verify Deployment
 
 ```bash
 # Check all pods are running
-kubectl get pods -n airflow
+kubectl get pods 
 
 # Check services
-kubectl get svc -n airflow
+kubectl get svc 
 
 # Watch pod status in real-time
-kubectl get pods -n airflow -w
+kubectl get pods -w
 ```
 
 ## Port Configuration
@@ -295,7 +294,7 @@ To bind directly to port 8080 on your local machine, you have two options:
 
 ```bash
 # Forward local port 8080 to the Airflow webserver
-kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+kubectl port-forward svc/airflow-webserver 8080:8080 
 ```
 
 Access URL: `http://localhost:8080`
@@ -402,23 +401,23 @@ Changes to the following directories are reflected immediately:
 
 ```bash
 # Test DAG loading
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags list
+kubectl exec -it deployment/airflow-scheduler -- airflow dags list
 
 # Test specific DAG
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags test <dag_id> <date>
+kubectl exec -it deployment/airflow-scheduler -- airflow dags test <dag_id> <date>
 
 # Trigger DAG manually
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags trigger <dag_id>
+kubectl exec -it deployment/airflow-scheduler -- airflow dags trigger <dag_id>
 ```
 
 ### Viewing Logs
 
 ```bash
 # Scheduler logs
-kubectl logs deployment/airflow-scheduler -n airflow -f
+kubectl logs deployment/airflow-scheduler -f
 
 # Webserver logs
-kubectl logs deployment/airflow-webserver -n airflow -f
+kubectl logs deployment/airflow-webserver -f
 
 # Task logs (available in UI or in logs/ directory)
 tail -f logs/dag_id=<dag_id>/run_id=<run_id>/task_id=<task_id>/attempt=1.log
@@ -452,16 +451,7 @@ scheduler:
       cpu: "1000m"
 ```
 
-#### Add Python Dependencies
 
-Create a custom Dockerfile:
-
-```dockerfile
-FROM apache/airflow:2.7.0
-USER airflow
-COPY requirements.txt /
-RUN pip install --no-cache-dir -r /requirements.txt
-```
 
 #### Configure Spark Resources
 
@@ -483,10 +473,10 @@ spark_config = {
 
 ```bash
 # Describe pod for events
-kubectl describe pod <pod-name> -n airflow
+kubectl describe pod <pod-name> 
 
 # Check logs
-kubectl logs <pod-name> -n airflow --previous
+kubectl logs <pod-name>  --previous
 
 # Common fixes:
 # - Check resource availability: kubectl top nodes
@@ -514,7 +504,7 @@ chmod -R 755 dags/ scripts/ logs/ plugins/
 kubectl get pods -n airflow | grep spark-
 
 # Check driver logs
-kubectl logs <spark-driver-pod> -n airflow
+kubectl logs <spark-driver-pod> 
 
 # Common issues:
 # - JAVA_HOME not set correctly
@@ -526,29 +516,29 @@ kubectl logs <spark-driver-pod> -n airflow
 
 ```bash
 # Check PostgreSQL pod
-kubectl logs deployment/postgres -n airflow
+kubectl logs deployment/postgres 
 
 # Test connection
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow db check
+kubectl exec -it deployment/airflow-scheduler -- airflow db check
 ```
 
 ### Debug Commands Cheatsheet
 
 ```bash
 # Get all resources in airflow namespace
-kubectl get all -n airflow
+kubectl get all 
 
 # Describe deployments
-kubectl describe deployment -n airflow
+kubectl describe deployment 
 
 # Execute commands in scheduler
-kubectl exec -it deployment/airflow-scheduler -n airflow -- bash
+kubectl exec -it deployment/airflow-scheduler  -- bash
 
 # Check Airflow configuration
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow config list
+kubectl exec -it deployment/airflow-scheduler  -- airflow config list
 
 # Force restart deployments
-kubectl rollout restart deployment -n airflow
+kubectl rollout restart deployment 
 ```
 
 ## Production Considerations

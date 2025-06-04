@@ -14,3 +14,4 @@ dags-archive/
 scripts/temp/extracted_customers/
 scripts/temp/extracted_sales/
 __pycache__/
+scripts/__pycache__/
