@@ -1,0 +1,35 @@
+{
+  "processing_time": "2025-06-02T07:24:17.723272",
+  "files_processed": 2,
+  "total_records": 10,
+  "total_revenue": 15211.07,
+  "total_items_sold": 65,
+  "avg_price": 391.64399999999995,
+  "categories": {
+    "Electronics": 4,
+    "Furniture": 4,
+    "Appliances": 2
+  },
+  "file_breakdown": [
+    {
+      "file_name": "sales_morning.csv",
+      "total_records": 5,
+      "total_products": 5,
+      "total_categories": 3,
+      "total_revenue": 7971.2,
+      "average_price": 333.69,
+      "total_quantity": 42,
+      "processed_at": "2025-06-02T07:24:17.718779"
+    },
+    {
+      "file_name": "sales_afternoon.csv",
+      "total_records": 5,
+      "total_products": 5,
+      "total_categories": 3,
+      "total_revenue": 7239.87,
+      "average_price": 449.59,
+      "total_quantity": 23,
+      "processed_at": "2025-06-02T07:24:17.721779"
+    }
+  ]
+}

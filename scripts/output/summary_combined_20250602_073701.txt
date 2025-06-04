@@ -1,0 +1,20 @@
+SALES DATA PROCESSING SUMMARY
+============================
+
+Combined Analysis Report
+Processing Time: 2025-06-02T07:37:01.448636
+Files Processed: 3
+Total Records: 15
+Total Revenue: $19068.85
+Total Items Sold: 90
+Average Price: $335.66
+
+Categories Breakdown:
+  - Electronics: 6 items
+  - Furniture: 6 items
+  - Appliances: 3 items
+
+File Processing Details:
+  - sales_morning.csv: $7971.20 revenue
+  - sales_afternoon.csv: $7239.87 revenue
+  - sales_evening.csv: $3857.78 revenue

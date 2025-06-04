@@ -1,0 +1,16 @@
+transaction_id,customer_id,product_name,category,quantity,price,transaction_date
+1001,C001,Laptop Dell Inspiron,Electronics,1,799.99,2024-01-15
+1002,C002,Office Chair,Furniture,2,149.50,2024-01-15
+1003,C003,Coffee Maker,Appliances,1,89.99,2024-01-15
+1004,C001,Wireless Mouse,Electronics,3,29.99,2024-01-15
+1005,C004,Standing Desk,Furniture,1,399.00,2024-01-16
+1006,C002,Smartphone,Electronics,1,599.00,2024-01-16
+1007,C005,Blender,Appliances,2,69.99,2024-01-16
+1008,C003,Monitor 4K,Electronics,1,449.99,2024-01-16
+1009,C006,Ergonomic Chair,Furniture,1,299.50,2024-01-17
+1010,C001,Air Fryer,Appliances,1,129.99,2024-01-17
+1011,C004,Gaming Laptop,Electronics,1,1299.99,2024-01-17
+1012,C002,Bookshelf,Furniture,1,129.99,2024-01-17
+1013,C007,Tablet,Electronics,2,349.00,2024-01-18
+1014,C005,Desk Lamp,Furniture,3,29.99,2024-01-18
+1015,C008,Microwave,Appliances,1,159.99,2024-01-18

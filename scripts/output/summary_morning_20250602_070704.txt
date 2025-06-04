@@ -1,0 +1,11 @@
+SALES DATA PROCESSING SUMMARY
+============================
+
+File: sales_morning.csv
+Processing Time: 2025-06-02T07:07:04.883780
+Total Records: 5
+Total Revenue: $7971.20
+Total Items Sold: 42
+Average Price: $333.69
+Total Products: 5
+Total Categories: 3

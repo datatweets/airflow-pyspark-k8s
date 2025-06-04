@@ -1,0 +1,5 @@
+region,charges_count,charges_mean,charges_std,charges_min,charges_max,age_mean,bmi_mean,children_mean
+southeast,367,14658.8,13944.33,1121.87,63770.43,38.89,33.32,1.04
+northeast,325,13371.92,11255.58,1694.8,58571.07,39.2,29.18,1.04
+northwest,326,12468.88,11093.96,1621.34,60021.4,39.26,29.2,1.14
+southwest,327,12295.84,11541.17,1241.56,52590.83,39.41,30.6,1.13

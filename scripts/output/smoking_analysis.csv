@@ -1,0 +1,3 @@
+smoker,charges_count,charges_mean,charges_std,charges_min,charges_max,age_mean,bmi_mean
+no,1069,8409.03,5992.05,1121.87,36910.61,39.32,30.66
+yes,276,31963.76,11569.74,11093.62,63770.43,38.66,30.67
