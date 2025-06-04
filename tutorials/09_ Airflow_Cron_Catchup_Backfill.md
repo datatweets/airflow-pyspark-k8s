@@ -93,7 +93,7 @@ default_args = {
     'retries': 1,
     'retry_delay': timedelta(minutes=5),
     'email_on_failure': True,
-    'email': ['data-team@company.com']
+    'email': ['lotfinejad@gmail.com']
 }
 
 def process_daily_sales(**context):
@@ -128,7 +128,7 @@ def generate_report(**context):
 
 # Create the DAG
 dag = DAG(
-    dag_id='daily_sales_pipeline',
+    dag_id='10_daily_sales_pipeline',
     description='Process daily sales data and generate reports',
     default_args=default_args,
     start_date=days_ago(7),  # Start 7 days ago

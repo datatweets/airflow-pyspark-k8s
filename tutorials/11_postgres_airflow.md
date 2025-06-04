@@ -31,7 +31,7 @@ First, let's locate the PostgreSQL pod in your Kubernetes cluster:
 
 ```bash
 # List all pods in the airflow namespace
-kubectl get pods -n airflow
+kubectl get pods 
 ```
 
 You should see something like:
@@ -51,7 +51,7 @@ Now, let's connect to the PostgreSQL pod:
 
 ```bash
 # Connect to the PostgreSQL pod
-kubectl exec -it airflow-postgresql-645854547c-mhqsw -n airflow -- /bin/bash
+kubectl exec -it airflow-postgresql-645854547c-mhqsw -- /bin/bash
 ```
 
 Once inside the pod, we need to identify the available PostgreSQL roles. Run:
@@ -248,7 +248,7 @@ You can also create the connection using Airflow CLI:
 
 ```bash
 # From outside the cluster
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow connections add \
+kubectl exec -it deployment/airflow-scheduler -- airflow connections add \
     postgres_customers \
     --conn-type postgres \
     --conn-host airflow-postgresql.airflow.svc.cluster.local \
