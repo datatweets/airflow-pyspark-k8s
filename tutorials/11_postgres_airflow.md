@@ -210,7 +210,7 @@ Now that we have our database ready, let's configure Airflow to connect to it.
 First, ensure PostgreSQL is accessible within the cluster. Check if a service exists:
 
 ```bash
-kubectl get services -n airflow | grep postgresql
+kubectl get services  | grep postgresql
 ```
 
 You should see something like:
@@ -230,14 +230,14 @@ airflow-postgresql    ClusterIP   10.96.123.45   <none>        5432/TCP   3d
 Connection Id: postgres_customers
 Connection Type: Postgres
 Description: Customer database for data pipelines
-Host: airflow-postgresql.airflow.svc.cluster.local
+Host: airflow-postgresql
 Schema: customers_db
 Login: dataengineer
 Password: datapass123
 Port: 5432
 ```
 
-**Note**: The host uses Kubernetes DNS format: `<service-name>.<namespace>.svc.cluster.local`
+
 
 1. Click **Test** to verify the connection
 2. Click **Save**
@@ -251,7 +251,7 @@ You can also create the connection using Airflow CLI:
 kubectl exec -it deployment/airflow-scheduler -- airflow connections add \
     postgres_customers \
     --conn-type postgres \
-    --conn-host airflow-postgresql.airflow.svc.cluster.local \
+    --conn-host airflow-postgresql \
     --conn-schema customers_db \
     --conn-login dataengineer \
     --conn-password datapass123 \
