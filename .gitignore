@@ -1,10 +1,6 @@
-
-
 dags/__pycache__/
 *.log
 
-
-dags/simple_xcom_example.py
 .DS_Store
 
 dags-archive/
