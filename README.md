@@ -245,13 +245,13 @@ kind create cluster --name airflow-cluster --config kind-config.yaml
 ### 5. Apply RBAC Configuration
 
 The RBAC manifest creates the `airflow-worker` and `airflow-scheduler`
-service accounts in a namespace you specify. Set the `NAMESPACE`
-environment variable and substitute it into the manifest before
-applying:
+service accounts in the `default` namespace. Set the `NAMESPACE`
+environment variable if you want to deploy them elsewhere and update
+`k8s/rbac.yaml` accordingly.
 
 ```bash
 NAMESPACE=default
-envsubst < k8s/rbac.yaml | kubectl apply -f -
+kubectl apply -f k8s/rbac.yaml -n "$NAMESPACE"
 ```
 
 ### 6. Deploy with Helm
