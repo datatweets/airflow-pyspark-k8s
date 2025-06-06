@@ -244,15 +244,21 @@ kind create cluster --name airflow-cluster --config kind-config.yaml
 
 ### 5. Apply RBAC Configuration
 
+The RBAC manifest creates the `airflow-worker` and `airflow-scheduler`
+service accounts in the `default` namespace. Set the `NAMESPACE`
+environment variable if you want to deploy them elsewhere and update
+`k8s/rbac.yaml` accordingly.
+
 ```bash
-kubectl apply -f k8s/rbac.yaml
+NAMESPACE=default
+kubectl apply -f k8s/rbac.yaml -n "$NAMESPACE"
 ```
 
 ### 6. Deploy with Helm
 
 ```bash
 helm upgrade --install airflow-pyspark . \
-  --namespace airflow \
+  --namespace "$NAMESPACE" \
   --create-namespace \
   --values values.yaml \
   --wait
@@ -262,13 +268,13 @@ helm upgrade --install airflow-pyspark . \
 
 ```bash
 # Check all pods are running
-kubectl get pods -n airflow
+kubectl get pods -n "$NAMESPACE"
 
 # Check services
-kubectl get svc -n airflow
+kubectl get svc -n "$NAMESPACE"
 
 # Watch pod status in real-time
-kubectl get pods -n airflow -w
+kubectl get pods -n "$NAMESPACE" -w
 ```
 
 ## Port Configuration
@@ -295,7 +301,7 @@ To bind directly to port 8080 on your local machine, you have two options:
 
 ```bash
 # Forward local port 8080 to the Airflow webserver
-kubectl port-forward svc/airflow-webserver 8080:8080 -n airflow
+kubectl port-forward svc/airflow-webserver 8080:8080 -n "$NAMESPACE"
 ```
 
 Access URL: `http://localhost:8080`
@@ -402,23 +408,23 @@ Changes to the following directories are reflected immediately:
 
 ```bash
 # Test DAG loading
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags list
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags list
 
 # Test specific DAG
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags test <dag_id> <date>
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags test <dag_id> <date>
 
 # Trigger DAG manually
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow dags trigger <dag_id>
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags trigger <dag_id>
 ```
 
 ### Viewing Logs
 
 ```bash
 # Scheduler logs
-kubectl logs deployment/airflow-scheduler -n airflow -f
+kubectl logs deployment/airflow-scheduler -n "$NAMESPACE" -f
 
 # Webserver logs
-kubectl logs deployment/airflow-webserver -n airflow -f
+kubectl logs deployment/airflow-webserver -n "$NAMESPACE" -f
 
 # Task logs (available in UI or in logs/ directory)
 tail -f logs/dag_id=<dag_id>/run_id=<run_id>/task_id=<task_id>/attempt=1.log
@@ -483,10 +489,10 @@ spark_config = {
 
 ```bash
 # Describe pod for events
-kubectl describe pod <pod-name> -n airflow
+kubectl describe pod <pod-name> -n "$NAMESPACE"
 
 # Check logs
-kubectl logs <pod-name> -n airflow --previous
+kubectl logs <pod-name> -n "$NAMESPACE" --previous
 
 # Common fixes:
 # - Check resource availability: kubectl top nodes
@@ -511,10 +517,10 @@ chmod -R 755 dags/ scripts/ logs/ plugins/
 
 ```bash
 # Find Spark driver pod
-kubectl get pods -n airflow | grep spark-
+kubectl get pods -n "$NAMESPACE" | grep spark-
 
 # Check driver logs
-kubectl logs <spark-driver-pod> -n airflow
+kubectl logs <spark-driver-pod> -n "$NAMESPACE"
 
 # Common issues:
 # - JAVA_HOME not set correctly
@@ -526,29 +532,29 @@ kubectl logs <spark-driver-pod> -n airflow
 
 ```bash
 # Check PostgreSQL pod
-kubectl logs deployment/postgres -n airflow
+kubectl logs deployment/postgres -n "$NAMESPACE"
 
 # Test connection
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow db check
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow db check
 ```
 
 ### Debug Commands Cheatsheet
 
 ```bash
-# Get all resources in airflow namespace
-kubectl get all -n airflow
+# Get all resources in the namespace
+kubectl get all -n "$NAMESPACE"
 
 # Describe deployments
-kubectl describe deployment -n airflow
+kubectl describe deployment -n "$NAMESPACE"
 
 # Execute commands in scheduler
-kubectl exec -it deployment/airflow-scheduler -n airflow -- bash
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- bash
 
 # Check Airflow configuration
-kubectl exec -it deployment/airflow-scheduler -n airflow -- airflow config list
+kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow config list
 
 # Force restart deployments
-kubectl rollout restart deployment -n airflow
+kubectl rollout restart deployment -n "$NAMESPACE"
 ```
 
 ## Production Considerations
