@@ -212,10 +212,10 @@ Update the paths in two files to match your local environment:
 ```yaml
 volumes:
   hostPaths:
-    dags:     /Users/YOUR_USERNAME/airflow-pyspark-k8s/dags
-    scripts:  /Users/YOUR_USERNAME/airflow-pyspark-k8s/scripts
-    logs:     /Users/YOUR_USERNAME/airflow-pyspark-k8s/logs
-    plugins:  /Users/YOUR_USERNAME/airflow-pyspark-k8s/plugins
+    dags:    /workspace/dags
+    scripts: /workspace/scripts
+    logs:    /workspace/logs
+    plugins: /workspace/plugins
 ```
 
 **In `kind-config.yaml`:**
@@ -254,21 +254,15 @@ kind create cluster --name airflow-cluster --config kind-config.yaml
 
 ### 6. Apply RBAC Configuration
 
-The RBAC manifest creates the `airflow-worker` and `airflow-scheduler`
-service accounts in the `default` namespace. Set the `NAMESPACE`
-environment variable if you want to deploy them elsewhere and update
-`k8s/rbac.yaml` accordingly.
 
 ```bash
-NAMESPACE=default
-kubectl apply -f k8s/rbac.yaml -n "$NAMESPACE"
+kubectl apply -f k8s/rbac.yaml
 ```
 
 ### 7. Deploy with Helm
 
 ```bash
 helm upgrade --install airflow-pyspark . \
-  --namespace "$NAMESPACE" \
   --create-namespace \
   --values values.yaml \
   --wait
@@ -278,13 +272,13 @@ helm upgrade --install airflow-pyspark . \
 
 ```bash
 # Check all pods are running
-kubectl get pods -n "$NAMESPACE"
+kubectl get pods 
 
 # Check services
-kubectl get svc -n "$NAMESPACE"
+kubectl get svc 
 
 # Watch pod status in real-time
-kubectl get pods -n "$NAMESPACE" -w
+kubectl get pods -w
 ```
 
 ## Port Configuration
@@ -311,7 +305,7 @@ To bind directly to port 8080 on your local machine, you have two options:
 
 ```bash
 # Forward local port 8080 to the Airflow webserver
-kubectl port-forward svc/airflow-webserver 8080:8080 -n "$NAMESPACE"
+kubectl port-forward svc/airflow-webserver 8080:8080 
 ```
 
 Access URL: `http://localhost:8080`
@@ -418,23 +412,23 @@ Changes to the following directories are reflected immediately:
 
 ```bash
 # Test DAG loading
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags list
+kubectl exec -it deployment/airflow-scheduler  -- airflow dags list
 
 # Test specific DAG
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags test <dag_id> <date>
+kubectl exec -it deployment/airflow-scheduler  -- airflow dags test <dag_id> <date>
 
 # Trigger DAG manually
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow dags trigger <dag_id>
+kubectl exec -it deployment/airflow-scheduler  -- airflow dags trigger <dag_id>
 ```
 
 ### Viewing Logs
 
 ```bash
 # Scheduler logs
-kubectl logs deployment/airflow-scheduler -n "$NAMESPACE" -f
+kubectl logs deployment/airflow-scheduler  -f
 
 # Webserver logs
-kubectl logs deployment/airflow-webserver -n "$NAMESPACE" -f
+kubectl logs deployment/airflow-webserver  -f
 
 # Task logs (available in UI or in logs/ directory)
 tail -f logs/dag_id=<dag_id>/run_id=<run_id>/task_id=<task_id>/attempt=1.log
@@ -499,10 +493,10 @@ spark_config = {
 
 ```bash
 # Describe pod for events
-kubectl describe pod <pod-name> -n "$NAMESPACE"
+kubectl describe pod <pod-name> 
 
 # Check logs
-kubectl logs <pod-name> -n "$NAMESPACE" --previous
+kubectl logs <pod-name>  --previous
 
 # Common fixes:
 # - Check resource availability: kubectl top nodes
@@ -527,10 +521,10 @@ chmod -R 755 dags/ scripts/ logs/ plugins/
 
 ```bash
 # Find Spark driver pod
-kubectl get pods -n "$NAMESPACE" | grep spark-
+kubectl get pods  | grep spark-
 
 # Check driver logs
-kubectl logs <spark-driver-pod> -n "$NAMESPACE"
+kubectl logs <spark-driver-pod> 
 
 # Common issues:
 # - JAVA_HOME not set correctly
@@ -542,29 +536,29 @@ kubectl logs <spark-driver-pod> -n "$NAMESPACE"
 
 ```bash
 # Check PostgreSQL pod
-kubectl logs deployment/postgres -n "$NAMESPACE"
+kubectl logs deployment/postgres 
 
 # Test connection
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow db check
+kubectl exec -it deployment/airflow-scheduler -- airflow db check
 ```
 
 ### Debug Commands Cheatsheet
 
 ```bash
 # Get all resources in the namespace
-kubectl get all -n "$NAMESPACE"
+kubectl get all 
 
 # Describe deployments
-kubectl describe deployment -n "$NAMESPACE"
+kubectl describe deployment 
 
 # Execute commands in scheduler
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- bash
+kubectl exec -it deployment/airflow-scheduler  -- bash
 
 # Check Airflow configuration
-kubectl exec -it deployment/airflow-scheduler -n "$NAMESPACE" -- airflow config list
+kubectl exec -it deployment/airflow-scheduler  -- airflow config list
 
 # Force restart deployments
-kubectl rollout restart deployment -n "$NAMESPACE"
+kubectl rollout restart deployment 
 ```
 
 ## Production Considerations
