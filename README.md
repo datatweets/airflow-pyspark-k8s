@@ -193,7 +193,17 @@ git clone https://github.com/datatweets/airflow-pyspark-k8s.git
 cd airflow-pyspark-k8s
 ```
 
-### 2. Configure Host Paths
+### 2. Prepare Local Directories
+
+Create the directories used by Airflow if they don't already exist and set
+permissions so they are writable by the containers:
+
+```bash
+mkdir -p dags scripts logs plugins
+chmod -R 755 dags scripts logs plugins
+```
+
+### 3. Configure Host Paths
 
 Update the paths in two files to match your local environment:
 
@@ -218,7 +228,7 @@ nodes:
         containerPath: /workspace
 ```
 
-### 3. Set Java Home
+### 4. Set Java Home
 
 In `templates/airflow-configmap.yaml`, set the appropriate JAVA_HOME:
 
@@ -236,13 +246,13 @@ data:
   JAVA_HOME: "/usr/lib/jvm/java-17-openjdk-arm64"
 ```
 
-### 4. Create the Kind Cluster
+### 5. Create the Kind Cluster
 
 ```bash
 kind create cluster --name airflow-cluster --config kind-config.yaml
 ```
 
-### 5. Apply RBAC Configuration
+### 6. Apply RBAC Configuration
 
 The RBAC manifest creates the `airflow-worker` and `airflow-scheduler`
 service accounts in the `default` namespace. Set the `NAMESPACE`
@@ -254,7 +264,7 @@ NAMESPACE=default
 kubectl apply -f k8s/rbac.yaml -n "$NAMESPACE"
 ```
 
-### 6. Deploy with Helm
+### 7. Deploy with Helm
 
 ```bash
 helm upgrade --install airflow-pyspark . \
@@ -264,7 +274,7 @@ helm upgrade --install airflow-pyspark . \
   --wait
 ```
 
-### 7. Verify Deployment
+### 8. Verify Deployment
 
 ```bash
 # Check all pods are running
