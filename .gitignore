@@ -8,7 +8,6 @@ scripts/temp/extracted_customers/
 scripts/temp/extracted_sales/
 __pycache__/
 
-
 # Exclude Python and SQL files from scripts folder
 scripts/*.py
 scripts/**/*.py
@@ -18,3 +17,7 @@ scripts/**/*.sql
 # Exclude all DAG files but keep the folder structure
 dags/*
 !dags/.gitkeep
+
+# Ignore generated output data
+scripts/output/
+scripts/processed/
